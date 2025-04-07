@@ -1,0 +1,7 @@
+# next.js
+.next
+package-lock.json
+/build
+.env*.local
+.env
+node_modules
