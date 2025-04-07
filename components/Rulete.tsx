@@ -17,13 +17,12 @@ const data = Array.from({ length: 20 }, (m, i) => {
   const backgroundColor = i % 2 === 0 ? "green" : "#ffffff";
   const textColor = i % 2 === 0 ? "white" : "black";
   return {
-    option: +i + 1,
+    option: String(i + 1),
     style: { backgroundColor, textColor },
   };
 });
 
 import { cn } from "@/lib/utils";
-import { dateIdeas } from "@/lib/date-ideas";
 
 type SavedDate = {
   id: number;
