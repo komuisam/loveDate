@@ -24,7 +24,7 @@ export function CoverTab({
 
   return (
     <div
-      className="relative aspect-[3/4] max-w-md mx-auto rounded-lg shadow-lg overflow-hidden"
+      className="relative md:aspect-[4/2] aspect-[3/4] w-full    mx-auto rounded-lg shadow-lg "
       style={{ backgroundColor: coverColor }}
     >
       <div className="absolute inset-0 p-8 flex flex-col items-center justify-center text-white">

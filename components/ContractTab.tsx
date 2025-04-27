@@ -30,15 +30,15 @@ export function ContractTab({ coverColor = "red" }: { coverColor: string }) {
 
   return (
     <div
-      className="relative aspect-[3/4] max-w-md mx-auto rounded-lg shadow-lg overflow-hidden"
+      className="relative md:aspect-[4/2] aspect-[3/4] w-full    mx-auto rounded-lg shadow-lg "
       style={{
         backgroundColor: "white",
         border: `8px solid ${coverColor}`,
       }}
     >
-      <div className="absolute inset-0 p-8 flex flex-col items-center justify-center">
-        <div className="w-full space-y-6">
-          <div className="text-center mb-6">
+      <div className="absolute inset-0 flex flex-col items-center justify-center w-4/5 m-auto">
+        <div className="w-full ">
+          <div className="text-center ">
             <h2 className="text-2xl font-bold" style={{ color: coverColor }}>
               Contrato de Citas
             </h2>
@@ -47,36 +47,8 @@ export function ContractTab({ coverColor = "red" }: { coverColor: string }) {
             </p>
           </div>
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="person1" className="text-sm font-medium">
-                Nombre de la primera persona
-              </Label>
-              <Input
-                id="person1"
-                value={person1}
-                onChange={(e) => setPerson1(e.target.value)}
-                placeholder="Escribe tu nombre aquí"
-                className="border-gray-300"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="person2" className="text-sm font-medium">
-                Nombre de la segunda persona
-              </Label>
-              <Input
-                id="person2"
-                value={person2}
-                onChange={(e) => setPerson2(e.target.value)}
-                placeholder="Escribe el nombre de tu pareja aquí"
-                className="border-gray-300"
-              />
-            </div>
-          </div>
-
-          <div className="pt-6 text-center text-sm">
-            <p>Nosotros, los abajo firmantes, nos comprometemos a:</p>
+          <div className=" text-center text-sm">
+            <p>Nosotros, firmamos y nos comprometemos a:</p>
             <ul className="text-left list-disc pl-5 mt-2 space-y-1">
               <li>Hacer tiempo para disfrutar juntos</li>
               <li>Ser espontáneos y abiertos a nuevas experiencias</li>
@@ -88,12 +60,27 @@ export function ContractTab({ coverColor = "red" }: { coverColor: string }) {
 
           <div className="pt-6 flex justify-between">
             <div className="text-center">
-              <div className="border-t border-gray-300 w-32 mx-auto pt-1">
+              <Input
+                id="person1"
+                value={person1}
+                onChange={(e) => setPerson1(e.target.value)}
+                placeholder="Tu nombre"
+                className="border-gray-300  w-36 md:w-44 mx-auto text-center"
+              />
+
+              <div className="border-t border-gray-300 w-36 md:w-44 mx-auto pt-1">
                 <p className="text-xs text-gray-500">{person1 || "Firma"}</p>
               </div>
             </div>
             <div className="text-center">
-              <div className="border-t border-gray-300 w-32 mx-auto pt-1">
+              <Input
+                id="person2"
+                value={person2}
+                onChange={(e) => setPerson2(e.target.value)}
+                placeholder="Tu pareja"
+                className="border-gray-300  w-36 md:w-44 mx-auto text-center"
+              />
+              <div className="border-t border-gray-300 w-36 md:w-44 mx-auto pt-1">
                 <p className="text-xs text-gray-500">{person2 || "Firma"}</p>
               </div>
             </div>

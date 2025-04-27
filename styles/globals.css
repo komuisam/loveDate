@@ -92,3 +92,15 @@ body {
     @apply bg-background text-foreground;
   }
 }
+.roulette-container {
+  position: relative;
+  width: 100%;
+  max-width: 550px;
+  aspect-ratio: 1;
+  margin: 0 auto;
+}
+
+#radix-«R17l7»-content-roulette > div > div.sc-gsTCUz.bhdLno > div{
+  width: 300px !important;
+  height: 300px !important;
+}

@@ -25,6 +25,30 @@ export function DateRoulette() {
   const [savedDates, setSavedDates] = useState<SavedDate[]>([]);
   const [selectedIdea, setSelectedIdea] = useState<SavedDate | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const sections = {
+    cover: {
+      label: "Portada",
+      content: (
+        <CoverTab coverColor={coverColor} setCoverColor={setCoverColor} />
+      ),
+    },
+    contract: {
+      label: "Contrato",
+      content: <ContractTab coverColor={coverColor} />,
+    },
+    roulette: {
+      label: "Ruleta",
+      content: <Roulet coverColor={coverColor} />,
+    },
+    browse: {
+      label: "Explorar Ideas",
+      content: <Browse />,
+    },
+    history: {
+      label: "Recuerdos",
+      content: <History coverColor={coverColor} />,
+    },
+  };
 
   // Load saved dates from localStorage on initial render
   useEffect(() => {
@@ -49,56 +73,38 @@ export function DateRoulette() {
   }, [savedDates]);
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <Tabs defaultValue="cover" className="w-full max-w-4xl mx-auto">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="cover">
-            <Book className="mr-2 h-4 w-4" />
-            Portada
-          </TabsTrigger>
-          <TabsTrigger value="contract">
-            <Heart className="mr-2 h-4 w-4" />
-            Contrato
-          </TabsTrigger>
-          <TabsTrigger value="roulette">
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Ruleta
-          </TabsTrigger>
-          <TabsTrigger value="browse">
-            <Heart className="mr-2 h-4 w-4" />
-            Explorar Ideas
-          </TabsTrigger>
-          <TabsTrigger value="history">
-            <ImageIcon className="mr-2 h-4 w-4" />
-            Recuerdos
-          </TabsTrigger>
+    <div className="container mx-auto py-2 px-4 ">
+      <Tabs defaultValue="cover" className="w-full max-w-4xl mx-auto ">
+        <TabsList className="p-0 grid w-full grid-cols-5 border-2 border-red-950 ">
+          {Object.entries(sections).map(
+            ([key, section]: [key: any, section: any], i) => {
+              return (
+                <TabsTrigger
+                  key={i + key + "tablist"}
+                  value={key}
+                  className="text-center items-center justify-center"
+                >
+                  <Book className="mr-2 h-4 w-4" />
+                  {section.label}
+                </TabsTrigger>
+              );
+            }
+          )}
         </TabsList>
 
-        {/* Cover Tab */}
-        <TabsContent value="cover" className="mt-6">
-          <CoverTab coverColor={coverColor} setCoverColor={setCoverColor} />
-        </TabsContent>
-
-        {/* Contract Tab */}
-
-        <TabsContent value="contract" className="mt-6">
-          <ContractTab coverColor="red" />
-        </TabsContent>
-
-        {/* Roulette Tab */}
-        <TabsContent value="roulette" className="mt-6">
-          <Roulet coverColor={coverColor} />
-        </TabsContent>
-
-        {/* Browse Tab */}
-        <TabsContent value="browse" className="mt-6">
-          <Browse />
-        </TabsContent>
-
-        {/* History Tab - Simplified version */}
-        <TabsContent value="history" className="mt-6">
-          <History coverColor={coverColor} />
-        </TabsContent>
+        {Object.entries(sections).map(
+          ([key, section]: [key: any, section: any], i) => {
+            return (
+              <TabsContent
+                key={i + key + "section"}
+                value={key}
+                className="mt-6"
+              >
+                {section.content}
+              </TabsContent>
+            );
+          }
+        )}
       </Tabs>
       {/* Hidden file input for image upload */}
       <input

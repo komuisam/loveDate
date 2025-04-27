@@ -11,18 +11,9 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { RefreshCw, Edit } from "lucide-react";
-
-const data = Array.from({ length: 20 }, (m, i) => {
-  const backgroundColor = i % 2 === 0 ? "green" : "#ffffff";
-  const textColor = i % 2 === 0 ? "white" : "black";
-  return {
-    option: String(i + 1),
-    style: { backgroundColor, textColor },
-  };
-});
 
 import { cn } from "@/lib/utils";
+import Roulette from "./Rulete2";
 
 type SavedDate = {
   id: number;
@@ -34,7 +25,7 @@ type SavedDate = {
 
 export function Roulet({ coverColor = "red" }: { coverColor: string }) {
   const [mustSpin, setMustSpin] = useState(false);
-  const [prizeNumber, setPrizeNumber] = useState(0);
+  const [prizeNumber, setPrizeNumber] = useState(1);
 
   const handleSpinClick = () => {
     if (!mustSpin) {
@@ -43,47 +34,84 @@ export function Roulet({ coverColor = "red" }: { coverColor: string }) {
       setMustSpin(true);
     }
   };
-
+  const data = Array.from({ length: 20 }, (m, i) => {
+    const backgroundColor = i % 2 === 0 ? coverColor : "#ffffff";
+    const textColor = i % 2 === 0 ? "white" : "black";
+    return {
+      option: String(i + 1),
+      style: { backgroundColor, textColor },
+    };
+  });
   return (
-    <>
-      <Wheel
-        mustStartSpinning={mustSpin}
-        prizeNumber={prizeNumber}
-        data={data}
-        innerRadius={1}
-        innerBorderColor={"black"}
-        innerBorderWidth={5}
-        radiusLineColor={"orange"}
-        radiusLineWidth={2}
-        backgroundColors={["#3e3e3e", "#df3428"]}
-        textColors={["#ffffff"]}
-        onStopSpinning={() => {
-          console.log(prizeNumber + 1);
-          setMustSpin(false);
-        }}
-      />
-      <Button
-        onClick={handleSpinClick}
-        disabled={mustSpin}
-        className="flex-1"
+    <div
+      className="flex  relative md:aspect-[4/2] aspect-[3/4] w-full    mx-auto rounded-lg shadow-lg "
+      style={{ backgroundColor: "white", border: "solid 8px " + coverColor }}
+    >
+      <div
+        className="flex justify-center items-center relative w-full mx-auto"
         style={{
-          backgroundColor: coverColor,
-          borderColor: coverColor,
+          height: "80vh",
         }}
       >
-        <RefreshCw className={cn("mr-2 h-4 w-4", mustSpin && "animate-spin")} />
-        {mustSpin ? "Girando..." : "Girar Ruleta"}
-      </Button>
-
-      {/* <Button
-          variant="outline"
-          onClick={resetWheel}
-          disabled={mustSpin || selectedDate === null}
-          className="flex-1"
+        {/* <Roulette n={16} size={500} coverColor={coverColor} /> */}
+        <div
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            zIndex: 1000, // Opcional: asegura que quede por encima de otros elementos
+            padding: "24px", // Opcional: espacio interno
+          }}
+          className="flex flex-col justify-center items-center"
         >
-          Reiniciar
-        </Button> */}
-    </>
+          <div
+            style={{
+              width: 300,
+              height: 300,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Wheel
+              key={"roulet"}
+              mustStartSpinning={mustSpin}
+              prizeNumber={prizeNumber}
+              data={data}
+              innerRadius={2}
+              innerBorderColor={"black"}
+              innerBorderWidth={5}
+              radiusLineColor={"orange"}
+              radiusLineWidth={2}
+              backgroundColors={["#3e3e3e", "#df3428", "#df3c28"]}
+              textColors={["#fff"]}
+              pointerProps={{
+                src: "/hear.svg",
+                style: {
+                  rotate: "46deg",
+                  transform: "translateX(-5px) translateY(30px)",
+                },
+              }}
+              onStopSpinning={() => {
+                setMustSpin(false);
+              }}
+            />
+            <button
+              onClick={handleSpinClick}
+              disabled={mustSpin}
+              className="w-16 h-16 sm:w-24 sm:h-24 rounded-full border-2 border-blue-300 absolute z-[1001] "
+              style={{
+                backgroundColor: coverColor,
+              }}
+            >
+              {mustSpin ? "Girando..." : "Girar Ruleta"}
+            </button>
+          </div>
+        </div>
+      </div>
+      <div className="flex gap-2 py-2"></div>
+    </div>
   );
 }
 /* 
