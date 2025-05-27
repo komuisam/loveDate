@@ -1,0 +1,60 @@
+<svg class="border bg-darker" id="svg" viewBox="0 0 1000 700" version="1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+
+  <defs>
+    <linearGradient id="line-gradient" x1="0" y1="0" x2="0" y2="-250" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B9B075" offset="0%" />
+      <stop stop-color="#F44336" offset="25%" />
+      <stop stop-color="#9C27B0" offset="50%" />
+      <stop stop-color="#4CAF50" offset="75%" />
+      <stop stop-color="#2196F3" offset="100%" />
+    </linearGradient>
+  </defs>
+
+  <defs>
+    <path id="window" d="M11 11H26V26H11z" />
+    <filter x="-110%" y="-110%" width="320%" height="320%" filterUnits="objectBoundingBox" id="filter-2">
+      <feMorphology radius="2" operator="dilate" in="SourceAlpha" result="shadowSpreadOuter1" />
+      <feOffset in="shadowSpreadOuter1" result="shadowOffsetOuter1" />
+      <feGaussianBlur stdDeviation="4" in="shadowOffsetOuter1" result="shadowBlurOuter1" />
+      <feColorMatrix values="0 0 0 0 0.988235294   0 0 0 0 0.933333333   0 0 0 0 0.568627451  0 0 0 0.483214447 0" in="shadowBlurOuter1" />
+    </filter>
+  </defs>
+
+  <g id="moon" transform="translate(700, 50) scale(0.7)">
+    <defs>
+      <circle stroke="none" id="moon-circle" cx="132" cy="132" r="132" />
+    </defs>
+    <mask id="moon-mask" fill="#fff">
+      <use xlink:href="#moon-circle" />
+    </mask>
+    <use id="Mask" stroke="none" fill="#F9F9FA" xlink:href="#moon-circle" />
+    <ellipse id="moon-bg" fill="#2C3540" mask="url(#moon-mask)" cx="104" cy="115" rx="132" ry="135" />
+  </g>
+
+
+
+
+  <g transform="scale(0.6) translate(600 400)">
+    <g transform="translate(500 280)">
+      <line class="wheel-line no-opacity" x1="0" y1="0" x2="0" y2="-250" stroke="url(#line-gradient)" stroke-width="2" />
+
+      <circle class="wheel-circle" stroke="#5DE2F9" fill="none" cx="0" cy="0" r="100"></circle>
+      <circle class="wheel-circle" stroke="#5DE2F9" fill="none" cx="0" cy="0" r="175"></circle>
+      <circle class="wheel-circle" stroke="#5DE2F9" fill="none" cx="0" cy="0" r="240"></circle>
+      <circle class="wheel-circle" stroke="#537AAC" fill="none" cx="0" cy="0" r="250" stroke-width="4"></circle>
+    </g>
+
+    <g transform="translate(395, 280)">
+      <path class="wheel-base" stroke="#5DE2F9" stroke-width="2" d="M155 162L105 112 55 162 205 302 105 2 5 302 155 162 105 2 105 302" fill="none" fill-rule="evenodd" stroke-linejoin="bevel" />
+    </g>
+
+    <g transform="translate(480, 30)">
+      <path class="wheel-cart no-opacity" fill="#B9B075" d="M20,0 C31.045695,0 40,8.954305 40,20 L40,30 C40,41.045695 31.045695,50 20,50 C8.954305,50 0,41.045695 0,30 L0,20 C0,8.954305 8.954305,0 20,0 Z M37,27 L37,20 C37,10.6111593 29.3888407,3 20,3 C10.6111593,3 3,10.6111593 3,20 L3,27 L37,27 Z" fill="none" fill-rule="evenodd" />
+    </g>
+  </g>
+
+
+
+
+
+</svg>

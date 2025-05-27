@@ -97,5 +97,7 @@ export const dateIdeas = [
   "Noche de cata de cervezas artesanales",
   "Hacer una ruta en quad o buggy",
   "Visitar un museo de historia natural",
-]
-
+  /* corregir esta repetida */
+  "Hacer una ruta en quad o buggy",
+  "Visitar un museo de historia natural",
+];

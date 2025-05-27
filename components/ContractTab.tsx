@@ -1,32 +1,35 @@
 "use client";
 
-import type React from "react";
-import { useState, useRef, useEffect } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  Dispatch,
+  SetStateAction,
+} from "react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Heart, Edit, Check } from "lucide-react";
-export function ContractTab({ coverColor = "red" }: { coverColor: string }) {
-  const [person1, setPerson1] = useState("");
-  const [person2, setPerson2] = useState("");
+import { DataRoot } from "@/app/types/types";
+export function ContractTab({
+  coverColor = "red",
+  dataPage,
+  setDataPage,
+}: {
+  coverColor: string;
+  dataPage: DataRoot;
+  setDataPage: Dispatch<SetStateAction<DataRoot>>;
+}) {
+  const [person1, setPerson1] = useState(dataPage.person1 ?? "");
+  const [person2, setPerson2] = useState(dataPage.person2 ?? "");
 
   useEffect(() => {
-    // Cargar nombres de contacto
-    const savedPerson1 = localStorage.getItem("person1");
-    const savedPerson2 = localStorage.getItem("person2");
-    if (savedPerson1) setPerson1(savedPerson1);
-    if (savedPerson2) setPerson2(savedPerson2);
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("person1", person1);
-  }, [person1]);
-
-  useEffect(() => {
-    localStorage.setItem("person2", person2);
-  }, [person2]);
+    setDataPage({ ...dataPage, person1, person2 });
+  }, [person1, person2]);
 
   return (
     <div
@@ -62,26 +65,26 @@ export function ContractTab({ coverColor = "red" }: { coverColor: string }) {
             <div className="text-center">
               <Input
                 id="person1"
-                value={person1}
-                onChange={(e) => setPerson1(e.target.value)}
+                defaultValue={person1}
+                onBlur={(e) => setPerson1(e.target.value)}
                 placeholder="Tu nombre"
                 className="border-gray-300  w-36 md:w-44 mx-auto text-center"
               />
 
               <div className="border-t border-gray-300 w-36 md:w-44 mx-auto pt-1">
-                <p className="text-xs text-gray-500">{person1 || "Firma"}</p>
+                <p className="text-xs text-gray-500">{"Firma"}</p>
               </div>
             </div>
             <div className="text-center">
               <Input
                 id="person2"
-                value={person2}
-                onChange={(e) => setPerson2(e.target.value)}
+                defaultValue={person2}
+                onBlur={(e) => setPerson2(e.target.value)}
                 placeholder="Tu pareja"
                 className="border-gray-300  w-36 md:w-44 mx-auto text-center"
               />
               <div className="border-t border-gray-300 w-36 md:w-44 mx-auto pt-1">
-                <p className="text-xs text-gray-500">{person2 || "Firma"}</p>
+                <p className="text-xs text-gray-500">{"Firma"}</p>
               </div>
             </div>
           </div>

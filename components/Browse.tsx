@@ -33,6 +33,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { TimePickerDemo } from "@/components/time-picker";
 
 type SavedDate = {
+  title: string;
   id: number;
   idea: string;
   imageUrl: string | null;

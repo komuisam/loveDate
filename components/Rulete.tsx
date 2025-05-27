@@ -1,7 +1,10 @@
 "use client";
-
+import { Heart, Edit, Check } from "lucide-react";
+import { dateIdeas } from "@/lib/date-ideas";
 import type React from "react";
 import dynamic from "next/dynamic";
+
+
 const Wheel = dynamic(
   () => import("react-custom-roulette").then((mod) => mod.Wheel),
   { ssr: false }
@@ -14,46 +17,83 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import { cn } from "@/lib/utils";
 import Roulette from "./Rulete2";
-
-type SavedDate = {
-  id: number;
-  idea: string;
-  imageUrl: string | null;
-  date: Date | null;
-  notes: string;
-};
+import { DateType } from "@/app/types/types";
 
 export function Roulet({ coverColor = "red" }: { coverColor: string }) {
   const [mustSpin, setMustSpin] = useState(false);
-  const [prizeNumber, setPrizeNumber] = useState(1);
+  const [prizeNumber, setPrizeNumber] = useState(0);
+
+  /* date */
+
+  const [selectedDate, setSelectedDate] = useState<number | null>(null);
+  const [selectedIdea, setSelectedIdea] = useState<DateType | null>(null);
+  const [savedDates, setSavedDates] = useState<DateType[]>([]);
+  const [selectedTime, setSelectedTime] = useState<Date | null>(null);
+  const [notes, setNotes] = useState("");
+  /* end date */
 
   const handleSpinClick = () => {
+    if (selectedIdea) {
+      setSelectedIdea(null);
+    }
     if (!mustSpin) {
       const newPrizeNumber = Math.floor(Math.random() * data.length);
       setPrizeNumber(newPrizeNumber);
+
       setMustSpin(true);
     }
   };
-  const data = Array.from({ length: 20 }, (m, i) => {
+
+  const data = Array.from({ length: dateIdeas.length }, (_, i) => {
+    console.log(dateIdeas[i]);
     const backgroundColor = i % 2 === 0 ? coverColor : "#ffffff";
     const textColor = i % 2 === 0 ? "white" : "black";
     return {
-      option: String(i + 1),
+      option: /* dateIdeas[i].slice(0, 6), */ String(i + 1),
       style: { backgroundColor, textColor },
     };
   });
+
+  const selectIdeaToEdit = (ideaIndex: number) => {
+    const idea = data[ideaIndex];
+
+    const existingSaved = savedDates.find((d) => d.id === ideaIndex);
+    console.log({ idea, ideaIndex, existingSaved });
+    if (existingSaved) {
+      setSelectedIdea(existingSaved);
+      setSelectedTime(existingSaved.date);
+      setNotes(existingSaved.notes);
+    } else {
+      setSelectedIdea({
+        title: dateIdeas[ideaIndex],
+        id: ideaIndex,
+        idea: idea.option,
+        imageUrl: null,
+        date: null,
+        notes: "",
+        ...idea,
+      });
+      setSelectedTime(null);
+      setNotes("");
+    }
+  };
+
   return (
     <div
-      className="flex  relative md:aspect-[4/2] aspect-[3/4] w-full    mx-auto rounded-lg shadow-lg "
+      className="flex  flex-col relative md:aspect-[4/2] aspect-[3/4] w-full    mx-auto rounded-lg shadow-lg "
       style={{ backgroundColor: "white", border: "solid 8px " + coverColor }}
     >
+      <div className="text-center w-full">
+        <h2 className="text-2xl font-bold" style={{ color: coverColor }}>
+          Gira y disfruta de las Citas
+        </h2>
+      </div>
       <div
-        className="flex justify-center items-center relative w-full mx-auto"
+        className="flex justify-center  relative w-full mx-auto"
         style={{
           height: "80vh",
         }}
       >
-        {/* <Roulette n={16} size={500} coverColor={coverColor} /> */}
         <div
           style={{
             position: "fixed",
@@ -82,9 +122,10 @@ export function Roulet({ coverColor = "red" }: { coverColor: string }) {
               innerRadius={2}
               innerBorderColor={"black"}
               innerBorderWidth={5}
-              radiusLineColor={"orange"}
+              radiusLineColor={"#f7d292"}
               radiusLineWidth={2}
               backgroundColors={["#3e3e3e", "#df3428", "#df3c28"]}
+              textDistance={90}
               textColors={["#fff"]}
               pointerProps={{
                 src: "/hear.svg",
@@ -95,6 +136,8 @@ export function Roulet({ coverColor = "red" }: { coverColor: string }) {
               }}
               onStopSpinning={() => {
                 setMustSpin(false);
+                selectIdeaToEdit(prizeNumber);
+                /* console.log({ selectedDate }); */
               }}
             />
             <button
@@ -105,135 +148,36 @@ export function Roulet({ coverColor = "red" }: { coverColor: string }) {
                 backgroundColor: coverColor,
               }}
             >
-              {mustSpin ? "Girando..." : "Girar Ruleta"}
+              {mustSpin
+                ? "Girando..."
+                : prizeNumber == 0
+                ? "Girar Ruleta"
+                : prizeNumber + 1}
             </button>
           </div>
         </div>
-      </div>
-      <div className="flex gap-2 py-2"></div>
-    </div>
-  );
-}
-/* 
-export function Roulet({ coverColor = "red" }: { coverColor: string }) {
-  const [mustSpin, setMustSpin] = useState(false);
-  const [prizeNumber, setPrizeNumber] = useState(0);
+        {selectedIdea !== null && (
+          <Card className="w-full py-2 m-2 h-fit z-[1000]">
+            <CardContent>
+              <h3 className="text-xl font-bold mb-2">Tu idea de cita:</h3>
+              <p className="text-lg">{selectedIdea.title}</p>
 
-  const [selectedDate, setSelectedDate] = useState<number | null>(null);
-  const wheelRef = useRef<HTMLDivElement>(null);
-  const [savedDates, setSavedDates] = useState<SavedDate[]>([]);
-  const [selectedIdea, setSelectedIdea] = useState<SavedDate | null>(null);
-  const [selectedTime, setSelectedTime] = useState<Date | null>(null);
-  const [notes, setNotes] = useState("");
-  const spinWheel = () => {
-    const randomIndex = Math.floor(Math.random() * dateIdeas.length);
-    setPrizeNumber(randomIndex);
-    setMustSpin(true);
-  };
-
-  const resetWheel = () => {
-    if (wheelRef.current) {
-      wheelRef.current.style.transition = "none";
-      wheelRef.current.style.transform = "rotate(0deg)";
-    }
-    setSelectedDate(null);
-  };
-  const selectIdeaToEdit = (ideaIndex: number) => {
-    const idea = dateIdeas[ideaIndex];
-    const existingSaved = savedDates.find((d) => d.id === ideaIndex);
-
-    if (existingSaved) {
-      setSelectedIdea(existingSaved);
-      setSelectedTime(existingSaved.date);
-      setNotes(existingSaved.notes);
-    } else {
-      setSelectedIdea({
-        id: ideaIndex,
-        idea,
-        imageUrl: null,
-        date: null,
-        notes: "",
-      });
-      setSelectedTime(null);
-      setNotes("");
-    }
-  };
-  return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="flex flex-col items-center">
-        <div className="relative w-72 h-72 md:w-96 md:h-96 mb-8">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 w-8 h-8 z-10">
-            <div className="w-0 h-0 border-l-[12px] border-r-[12px] border-t-[16px] border-l-transparent border-r-transparent border-t-black mx-auto"></div>
-          </div>
-
-          <Wheel
-            mustStartSpinning={mustSpin}
-            prizeNumber={prizeNumber}
-            data={data}
-            innerRadius={1}
-            innerBorderColor={"black"}
-            innerBorderWidth={5}
-            radiusLineColor={"orange"}
-            radiusLineWidth={2}
-            backgroundColors={["#3e3e3e", "#df3428"]}
-            textColors={["#ffffff"]}
-          />
-        </div>
-
-        <div className="space-y-4 w-full max-w-md">
-          <div className="flex gap-2">
-            <Button
-              onClick={spinWheel}
-              disabled={mustSpin}
-              className="flex-1"
-              style={{
-                backgroundColor: coverColor,
-                borderColor: coverColor,
-              }}
-            >
-              <RefreshCw
-                className={cn("mr-2 h-4 w-4", mustSpin && "animate-spin")}
-              />
-              {mustSpin ? "Girando..." : "Girar Ruleta"}
-            </Button>
-
-            <Button
-              variant="outline"
-              onClick={resetWheel}
-              disabled={mustSpin || selectedDate === null}
-              className="flex-1"
-            >
-              Reiniciar
-            </Button>
-          </div>
-
-          {selectedDate !== null && (
-            <Card className="mt-4">
-              <CardContent className="pt-6">
-                <h3 className="text-xl font-bold mb-2">Tu idea de cita:</h3>
-                <p className="text-lg">{dateIdeas[selectedDate]}</p>
-
-                <div className="mt-4">
-                  <Button
-                    onClick={() => selectIdeaToEdit(selectedDate)}
-                    style={{
-                      backgroundColor: coverColor,
-                      borderColor: coverColor,
-                    }}
-                  >
-                    <Edit className="mr-2 h-4 w-4" />
-                    Guardar esta idea
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
-      <div className="text-center text-sm text-gray-500 mt-2">
-        Los números en la ruleta (1-20) representan diferentes ideas de citas
+              <div className="mt-2">
+                <Button
+                  onClick={() => selectIdeaToEdit(prizeNumber)}
+                  style={{
+                    backgroundColor: coverColor,
+                    borderColor: coverColor,
+                  }}
+                >
+                  <Edit className="mr-2 h-4 w-4" />
+                  Guardar esta idea
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
 }
- */

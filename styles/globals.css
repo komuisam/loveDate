@@ -92,6 +92,7 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
 .roulette-container {
   position: relative;
   width: 100%;
@@ -100,7 +101,37 @@ body {
   margin: 0 auto;
 }
 
-#radix-«R17l7»-content-roulette > div > div.sc-gsTCUz.bhdLno > div{
+#radix-«R17l7»-content-roulette > div > div.sc-gsTCUz.bhdLno > div {
   width: 300px !important;
   height: 300px !important;
+}
+
+#spin-btn {
+  width: 150px;
+  height: 150px;
+  position: absolute;
+  white-space: nowrap;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 12px 24px;
+  font-size: 18px;
+  background: #ff6ea8;
+  color: white;
+  border: solid 6px #537aac;
+  border-radius: 100%;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s;
+}
+
+#spin-btn:hover {
+  background: #e55d97;
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
+#spin-btn:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
 }
