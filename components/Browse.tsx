@@ -11,6 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { DataRoot, DateType } from "@/app/types/types";
+
 import {
   ChevronLeft,
   ChevronRight,
@@ -32,25 +34,24 @@ import {
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { TimePickerDemo } from "@/components/time-picker";
 
-type SavedDate = {
-  title: string;
-  id: number;
-  idea: string;
-  imageUrl: string | null;
-  date: Date | null;
-  notes: string;
-};
-
-export function Browse() {
+export function Browse({
+  dataPage,
+  setDataPage,
+}: {
+  dataPage: DataRoot;
+  setDataPage: (m: DataRoot) => void;
+}) {
   const [coverColor, setCoverColor] = useState("#f43f5e"); // rose-500
-  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const [direction, setDirection] = useState(0); // -1 for left, 1 for right
-  const [savedDates, setSavedDates] = useState<SavedDate[]>([]);
-  const [selectedIdea, setSelectedIdea] = useState<SavedDate | null>(null);
+  const [savedDates, setSavedDates] = useState<DateType[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const itemsPerPage = 2; // Two ideas per page (left and right)
+
+  const [searchTerm, setSearchTerm] = useState(
+    dataPage?.targetDate?.title ?? ""
+  );
 
   const filteredDateIdeas = dateIdeas.filter((idea) =>
     idea.toLowerCase().includes(searchTerm.toLowerCase())
@@ -80,13 +81,6 @@ export function Browse() {
     }
   }, []);
 
-  // Save to localStorage whenever savedDates changes
-  useEffect(() => {
-    localStorage.setItem("savedDates", JSON.stringify(savedDates));
-  }, [savedDates]);
-
-  // Save contract names to localStorage
-
   const handleNextPage = () => {
     if (currentPage < totalPages - 1) {
       setDirection(1);
@@ -101,9 +95,6 @@ export function Browse() {
     }
   };
 
-  // Filtrar citas con imágenes para la sección de historia
-  const datesWithImages = savedDates.filter((date) => date.imageUrl);
-
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="space-y-4">
@@ -116,6 +107,10 @@ export function Browse() {
               setSearchTerm(e.target.value);
               setCurrentPage(0);
             }}
+            onBlur={() => {
+              console.log("dejo de pulsar");
+              //setDataPage()
+            }}
             className="pl-10"
           />
         </div>
@@ -123,7 +118,9 @@ export function Browse() {
         {/* Book-style pagination */}
         <div className="relative w-full max-w-3xl mx-auto h-[600px] bg-white rounded-lg shadow-lg overflow-hidden">
           {/* Book binding */}
-          <div className="absolute left-1/2 top-0 bottom-0 w-4 -translate-x-1/2 bg-gray-300 z-10 shadow-inner"></div>
+          {paginatedIdeas[1] && (
+            <div className="absolute left-1/2 top-0 bottom-0 w-4 -translate-x-1/2 bg-gray-300 z-10 shadow-inner"></div>
+          )}
 
           {/* Page content */}
           <div className="relative w-full h-full flex">
@@ -163,7 +160,11 @@ export function Browse() {
                 style={{ perspective: "1200px" }}
               >
                 {/* Left page */}
-                <div className="w-1/2 h-full p-6 bg-[#f8f9fa] border-r border-gray-200 flex flex-col overflow-y-auto">
+                <div
+                  className={`${
+                    paginatedIdeas[1] ? "w-1/2" : "w-full"
+                  } h-full p-6 bg-[#f8f9fa] border-r border-gray-200 flex flex-col overflow-y-auto`}
+                >
                   {paginatedIdeas[0] ? (
                     <div className="flex flex-col h-full">
                       <div className="flex justify-between items-center mb-2">
@@ -237,9 +238,9 @@ export function Browse() {
                                 <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-md h-32">
                                   <Button
                                     variant="ghost"
-                                    onClick={() => {
+                                    onClick={(e) => {
                                       // Set the selected idea for the file input
-                                      setSelectedIdea(currentIdea);
+
                                       fileInputRef.current?.click();
                                     }}
                                   >
@@ -375,139 +376,65 @@ export function Browse() {
                 </div>
 
                 {/* Right page */}
-                <div className="w-1/2 h-full p-6 bg-white flex flex-col overflow-y-auto">
-                  {paginatedIdeas[1] ? (
-                    <div className="flex flex-col h-full">
-                      <div className="flex justify-between items-center mb-2">
-                        <div className="text-sm text-gray-500">
-                          Idea #{currentPage * itemsPerPage + 2}
+                {paginatedIdeas[1] && (
+                  <div className="w-1/2 h-full p-6 bg-white flex flex-col overflow-y-auto">
+                    {paginatedIdeas[1] ? (
+                      <div className="flex flex-col h-full">
+                        <div className="flex justify-between items-center mb-2">
+                          <div className="text-sm text-gray-500">
+                            Idea #{currentPage * itemsPerPage + 2}
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            Página {currentPage + 1} de {totalPages}
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-400">
-                          Página {currentPage + 1} de {totalPages}
-                        </div>
-                      </div>
-                      <h3
-                        className="text-xl font-bold mb-3"
-                        style={{ color: coverColor }}
-                      >
-                        {paginatedIdeas[1]}
-                      </h3>
+                        <h3
+                          className="text-xl font-bold mb-3"
+                          style={{ color: coverColor }}
+                        >
+                          {paginatedIdeas[1]}
+                        </h3>
 
-                      {/* Check if this idea has been saved */}
-                      {(() => {
-                        const ideaIndex = currentPage * itemsPerPage + 1;
-                        const savedIndex = savedDates.findIndex(
-                          (d) => d.id === ideaIndex
-                        );
-                        const saved =
-                          savedIndex >= 0 ? savedDates[savedIndex] : null;
+                        {/* Check if this idea has been saved */}
+                        {(() => {
+                          const ideaIndex = currentPage * itemsPerPage + 1;
+                          const savedIndex = savedDates.findIndex(
+                            (d) => d.id === ideaIndex
+                          );
+                          const saved =
+                            savedIndex >= 0 ? savedDates[savedIndex] : null;
 
-                        // Create a temporary idea object for editing
-                        const currentIdea = saved || {
-                          id: ideaIndex,
-                          idea: paginatedIdeas[1],
-                          imageUrl: null,
-                          date: null,
-                          notes: "",
-                        };
+                          // Create a temporary idea object for editing
+                          const currentIdea = saved || {
+                            id: ideaIndex,
+                            idea: paginatedIdeas[1],
+                            imageUrl: null,
+                            date: null,
+                            notes: "",
+                          };
 
-                        return (
-                          <div className="flex-1 flex flex-col">
-                            {/* Image section */}
-                            <div className="mb-3">
-                              {currentIdea.imageUrl ? (
-                                <div className="relative w-full h-32 rounded overflow-hidden">
-                                  <img
-                                    src={
-                                      currentIdea.imageUrl || "/placeholder.svg"
-                                    }
-                                    alt={currentIdea.idea}
-                                    className="w-full h-full object-cover"
-                                  />
-                                  <Button
-                                    variant="destructive"
-                                    size="sm"
-                                    className="absolute top-2 right-2"
-                                    onClick={() => {
-                                      const updatedIdea = {
-                                        ...currentIdea,
-                                        imageUrl: null,
-                                      };
-                                      const updatedDates = [...savedDates];
-                                      if (savedIndex >= 0) {
-                                        updatedDates[savedIndex] = updatedIdea;
-                                      } else {
-                                        updatedDates.push(updatedIdea);
+                          return (
+                            <div className="flex-1 flex flex-col">
+                              {/* Image section */}
+                              <div className="mb-3">
+                                {currentIdea.imageUrl ? (
+                                  <div className="relative w-full h-32 rounded overflow-hidden">
+                                    <img
+                                      src={
+                                        currentIdea.imageUrl ||
+                                        "/placeholder.svg"
                                       }
-                                      setSavedDates(updatedDates);
-                                    }}
-                                  >
-                                    Eliminar
-                                  </Button>
-                                </div>
-                              ) : (
-                                <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-md h-32">
-                                  <Button
-                                    variant="ghost"
-                                    onClick={() => {
-                                      // Set the selected idea for the file input
-                                      setSelectedIdea(currentIdea);
-                                      fileInputRef.current?.click();
-                                    }}
-                                  >
-                                    <ImageIcon className="mr-2 h-4 w-4" />
-                                    Subir imagen
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Date and time section */}
-                            <div className="mb-3">
-                              <Label className="text-sm mb-1 block">
-                                Fecha y Hora
-                              </Label>
-                              <div className="flex gap-2">
-                                <Popover>
-                                  <PopoverTrigger asChild>
+                                      alt={currentIdea.idea}
+                                      className="w-full h-full object-cover"
+                                    />
                                     <Button
-                                      variant="outline"
-                                      className={cn(
-                                        "w-full justify-start text-left font-normal text-xs",
-                                        !currentIdea.date &&
-                                          "text-muted-foreground"
-                                      )}
-                                    >
-                                      <Calendar className="mr-2 h-3 w-3" />
-                                      {currentIdea.date
-                                        ? format(currentIdea.date, "PPP", {
-                                            locale: es,
-                                          })
-                                        : "Seleccionar fecha"}
-                                    </Button>
-                                  </PopoverTrigger>
-                                  <PopoverContent className="w-auto p-0">
-                                    <CalendarComponent
-                                      mode="single"
-                                      selected={currentIdea.date || undefined}
-                                      onSelect={(date) => {
-                                        if (!date) return;
-
-                                        // Create a new date object with the selected date
-                                        let newDate = date;
-                                        if (currentIdea.date) {
-                                          newDate = new Date(date);
-                                          newDate.setHours(
-                                            currentIdea.date.getHours()
-                                          );
-                                          newDate.setMinutes(
-                                            currentIdea.date.getMinutes()
-                                          );
-                                        }
-
+                                      variant="destructive"
+                                      size="sm"
+                                      className="absolute top-2 right-2"
+                                      onClick={() => {
                                         const updatedIdea = {
                                           ...currentIdea,
-                                          date: newDate,
+                                          imageUrl: null,
                                         };
                                         const updatedDates = [...savedDates];
                                         if (savedIndex >= 0) {
@@ -518,24 +445,124 @@ export function Browse() {
                                         }
                                         setSavedDates(updatedDates);
                                       }}
-                                      initialFocus
-                                    />
-                                  </PopoverContent>
-                                </Popover>
+                                    >
+                                      Eliminar
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-md h-32">
+                                    <Button
+                                      variant="ghost"
+                                      onClick={() => {
+                                        fileInputRef.current?.click();
+                                      }}
+                                    >
+                                      <ImageIcon className="mr-2 h-4 w-4" />
+                                      Subir imagen
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
 
-                                <TimePickerDemo
-                                  setDate={(time) => {
-                                    // Create a new date object with the selected time
-                                    let newDate = time;
-                                    if (currentIdea.date) {
-                                      newDate = new Date(currentIdea.date);
-                                      newDate.setHours(time.getHours());
-                                      newDate.setMinutes(time.getMinutes());
-                                    }
+                              {/* Date and time section */}
+                              <div className="mb-3">
+                                <Label className="text-sm mb-1 block">
+                                  Fecha y Hora
+                                </Label>
+                                <div className="flex gap-2">
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        className={cn(
+                                          "w-full justify-start text-left font-normal text-xs",
+                                          !currentIdea.date &&
+                                            "text-muted-foreground"
+                                        )}
+                                      >
+                                        <Calendar className="mr-2 h-3 w-3" />
+                                        {currentIdea.date
+                                          ? format(currentIdea.date, "PPP", {
+                                              locale: es,
+                                            })
+                                          : "Seleccionar fecha"}
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0">
+                                      <CalendarComponent
+                                        mode="single"
+                                        selected={currentIdea.date || undefined}
+                                        onSelect={(date) => {
+                                          if (!date) return;
 
+                                          // Create a new date object with the selected date
+                                          let newDate = date;
+                                          if (currentIdea.date) {
+                                            newDate = new Date(date);
+                                            newDate.setHours(
+                                              currentIdea.date.getHours()
+                                            );
+                                            newDate.setMinutes(
+                                              currentIdea.date.getMinutes()
+                                            );
+                                          }
+
+                                          const updatedIdea = {
+                                            ...currentIdea,
+                                            date: newDate,
+                                          };
+                                          const updatedDates = [...savedDates];
+                                          if (savedIndex >= 0) {
+                                            updatedDates[savedIndex] =
+                                              updatedIdea;
+                                          } else {
+                                            updatedDates.push(updatedIdea);
+                                          }
+                                          setSavedDates(updatedDates);
+                                        }}
+                                        initialFocus
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
+
+                                  <TimePickerDemo
+                                    setDate={(time) => {
+                                      // Create a new date object with the selected time
+                                      let newDate = time;
+                                      if (currentIdea.date) {
+                                        newDate = new Date(currentIdea.date);
+                                        newDate.setHours(time.getHours());
+                                        newDate.setMinutes(time.getMinutes());
+                                      }
+
+                                      const updatedIdea = {
+                                        ...currentIdea,
+                                        date: newDate,
+                                      };
+                                      const updatedDates = [...savedDates];
+                                      if (savedIndex >= 0) {
+                                        updatedDates[savedIndex] = updatedIdea;
+                                      } else {
+                                        updatedDates.push(updatedIdea);
+                                      }
+                                      setSavedDates(updatedDates);
+                                    }}
+                                    date={currentIdea.date || new Date()}
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Notes section */}
+                              <div className="mb-3">
+                                <Label className="text-sm mb-1 block">
+                                  Notas
+                                </Label>
+                                <Textarea
+                                  value={currentIdea.notes}
+                                  onChange={(e) => {
                                     const updatedIdea = {
                                       ...currentIdea,
-                                      date: newDate,
+                                      notes: e.target.value,
                                     };
                                     const updatedDates = [...savedDates];
                                     if (savedIndex >= 0) {
@@ -545,46 +572,22 @@ export function Browse() {
                                     }
                                     setSavedDates(updatedDates);
                                   }}
-                                  date={currentIdea.date || new Date()}
+                                  placeholder="Escribe tus notas sobre esta cita..."
+                                  className="text-sm"
+                                  rows={3}
                                 />
                               </div>
                             </div>
-
-                            {/* Notes section */}
-                            <div className="mb-3">
-                              <Label className="text-sm mb-1 block">
-                                Notas
-                              </Label>
-                              <Textarea
-                                value={currentIdea.notes}
-                                onChange={(e) => {
-                                  const updatedIdea = {
-                                    ...currentIdea,
-                                    notes: e.target.value,
-                                  };
-                                  const updatedDates = [...savedDates];
-                                  if (savedIndex >= 0) {
-                                    updatedDates[savedIndex] = updatedIdea;
-                                  } else {
-                                    updatedDates.push(updatedIdea);
-                                  }
-                                  setSavedDates(updatedDates);
-                                }}
-                                placeholder="Escribe tus notas sobre esta cita..."
-                                className="text-sm"
-                                rows={3}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-gray-400">
-                      No hay más ideas
-                    </div>
-                  )}
-                </div>
+                          );
+                        })()}
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-gray-400">
+                        No hay más ideas
+                      </div>
+                    )}
+                  </div>
+                )}
               </motion.div>
             </AnimatePresence>
           </div>

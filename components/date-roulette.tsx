@@ -63,7 +63,7 @@ export function DateRoulette() {
     },
     browse: {
       label: "Explorar Ideas",
-      content: <Browse />,
+      content: <Browse dataPage={dataPage} setDataPage={setDataPage} />,
     },
     history: {
       label: "Recuerdos",
@@ -73,6 +73,7 @@ export function DateRoulette() {
 
   function safePageStatus() {
     const dataPageSaved = localStorage.getItem("dataPage");
+    console.log(dataPageSaved);
     if (dataPageSaved) {
       try {
         const parsed = JSON.parse(dataPageSaved);
@@ -100,6 +101,9 @@ export function DateRoulette() {
   const [savedDates, setSavedDates] = useState<DateType[]>([]);
 
   function selectIdeaToEdit(ideaIndex: number) {
+    if (!ideaIndex) {
+      return;
+    }
     const idea = dateIdeas[ideaIndex];
     const existingSaved = savedDates.find((d) => d.id === ideaIndex);
     let selected = null;
@@ -118,9 +122,7 @@ export function DateRoulette() {
 
     setDataPage({ ...dataPage, targetDate: selected });
     setSelectedIdea(selected);
-    console.log({ selected });
   }
-  console.log({ dataPage });
   return (
     <>
       {loading && (
