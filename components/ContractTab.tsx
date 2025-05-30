@@ -33,7 +33,7 @@ export function ContractTab({
 
   return (
     <div
-      className="relative md:aspect-[4/2] aspect-[3/4] w-full    mx-auto rounded-lg shadow-lg "
+      className="relative md:aspect-[4/2] aspect-[3/4] w-full    mx-auto rounded-xl shadow-lg "
       style={{
         backgroundColor: "white",
         border: `8px solid ${coverColor}`,

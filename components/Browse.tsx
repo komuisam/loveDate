@@ -96,7 +96,13 @@ export function Browse({
   };
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div
+      className="flex  flex-col relative md:aspect-[4/3]  aspect-[3/3] w-full mx-auto rounded-xl shadow-lg p-3 "
+      style={{
+        backgroundColor: "white",
+        border: `8px solid ${coverColor}`,
+      }}
+    >
       <div className="space-y-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

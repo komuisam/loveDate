@@ -222,7 +222,7 @@ const Wheel: React.FC<WheelProps> = ({
 
   return (
     <div
-      className="flex  flex-col relative md:aspect-[4/3]  aspect-[3/3] w-full    mx-auto rounded-lg shadow-lg "
+      className="flex  flex-col relative md:aspect-[4/3]  aspect-[3/3] w-full    mx-auto rounded-xl shadow-lg "
       style={{ backgroundColor: "white", border: "solid 8px " + coverColor }}
     >
       <div className="text-center w-full">
