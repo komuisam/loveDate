@@ -14,6 +14,7 @@ import { History } from "./History";
 import { DataRoot, DateType } from "@/app/types/types";
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
+import { Browse2 } from "./book";
 
 export function DateRoulette() {
   const [spinComplete, onSpinComplete] = useState<number | null>(null);
@@ -64,6 +65,16 @@ export function DateRoulette() {
     browse: {
       label: "Explorar Ideas",
       content: <Browse dataPage={dataPage} setDataPage={setDataPage} />,
+    },
+    browse2: {
+      label: "Explorar Ideas",
+      content: (
+        <Browse2
+          coverColor={coverColor}
+          dataPage={dataPage}
+          setDataPage={setDataPage}
+        />
+      ),
     },
     history: {
       label: "Recuerdos",
