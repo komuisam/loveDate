@@ -60,8 +60,12 @@ const Page = forwardRef<HTMLDivElement, PageProps>((props, ref) => {
     date: null,
     notes: "",
   };
+
   return (
-    <div className="  p-8" ref={ref}>
+    <div
+      className="p-5 bg-[#fdfaf7] text-[#785e3a] border border-[#c2b5a3] overflow-hidden absolute"
+      ref={ref}
+    >
       <div className="page-content">
         <div className="flex justify-between items-center mb-2">
           <div className="text-sm text-gray-500">Idea #{props.number}</div>
@@ -255,10 +259,19 @@ export function Browse2({
     flipBook.current?.pageFlip()?.flipPrev();
   };
 
+  const [flipBg, setFlipBg] = useState("bg-white");
+
+  const pageFlipColors = [
+    "bg-gradient-to-r from-pink-100 via-white to-pink-200",
+    "bg-gradient-to-r from-blue-100 via-white to-blue-200",
+    "bg-gradient-to-r from-green-100 via-white to-green-200",
+    // ...etc
+  ];
+
   const onPage = (e: { data: number }) => {
     setPage(e.data);
+    setFlipBg(pageFlipColors[e.data % pageFlipColors.length]);
   };
-
   return (
     <div
       className="flex  flex-col relative md:aspect-[4/3]  aspect-[3/3] w-full mx-auto rounded-xl shadow-lg p-3 "
@@ -288,10 +301,10 @@ export function Browse2({
         size="stretch"
         minWidth={315}
         maxWidth={1000}
-        flippingTime={1}
+        flippingTime={1200}
         minHeight={400}
         maxHeight={1533}
-        //maxShadowOpacity={0.5}
+        maxShadowOpacity={0.8}
         showCover={true}
         mobileScrollSupport={true}
         onFlip={onPage}
