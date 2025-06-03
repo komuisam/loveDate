@@ -60,7 +60,7 @@ const Page = forwardRef<HTMLDivElement, PageProps>((props, ref) => {
     date: null,
     notes: "",
   };
-
+  console.log({ props });
   return (
     <div
       className="p-5 bg-[#fdfaf7] text-[#785e3a] border border-[#c2b5a3] overflow-hidden absolute"
@@ -77,7 +77,7 @@ const Page = forwardRef<HTMLDivElement, PageProps>((props, ref) => {
           className="text-xl font-bold mb-3"
           style={{ color: props.coverColor }}
         >
-          Page header - {props.number}
+          Titulo: {props?.currentIdea?.title ?? "Por defecto"}
         </h3>
 
         {/* Image section */}
@@ -213,6 +213,7 @@ const Page = forwardRef<HTMLDivElement, PageProps>((props, ref) => {
           <Textarea
             value={currentIdea.notes}
             onChange={(e) => {
+              e.stopPropagation();
               const updatedIdea = {
                 ...currentIdea,
                 notes: e.target.value,
@@ -244,9 +245,10 @@ export function Browse2({
   setDataPage: (m: DataRoot) => void;
   coverColor: string;
 }) {
+  const [pageSearh, setPageSearh] = useState(5);
   const [currentIdea, setCurrentIdea] = useState(0);
   const [page, setPage] = useState(0);
-  const [totalPage, setTotalPage] = useState(0);
+  const [totalPage, setTotalPage] = useState(40);
   const flipBook = useRef<any>(null); // Tipo any porque el tipo exacto de HTMLFlipBook no está expuesto
   const [searchTerm, setSearchTerm] = useState(
     dataPage?.targetDate?.title ?? ""
@@ -274,13 +276,13 @@ export function Browse2({
   };
   return (
     <div
-      className="flex  flex-col relative md:aspect-[4/3]  aspect-[3/3] w-full mx-auto rounded-xl shadow-lg p-3 "
+      className="justify-between flex max-h-[80vh] min-h-[80vh] md:min-h-[50vh]  flex-col relative md:aspect-[4/3]  aspect-auto w-full mx-auto rounded-xl shadow-lg p-3 "
       style={{
         backgroundColor: "white",
         border: `8px solid ${coverColor}`,
       }}
     >
-      <div className="relative">
+      <div className="relative ">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Buscar ideas de citas..."
@@ -297,10 +299,11 @@ export function Browse2({
       </div>
       <HTMLFlipBook
         width={550}
-        height={733}
+        style={{}} // <-- Esto soluciona el error
+        height={650}
         size="stretch"
         minWidth={315}
-        maxWidth={1000}
+        maxWidth={800}
         flippingTime={1200}
         minHeight={400}
         maxHeight={1533}
@@ -309,9 +312,20 @@ export function Browse2({
         mobileScrollSupport={true}
         onFlip={onPage}
         ref={flipBook}
+        className={""}
+        startPage={pageSearh - 1 < 0 ? 0 : pageSearh - 1}
+        drawShadow={true}
+        usePortrait={true}
+        startZIndex={0}
+        autoSize={true}
+        clickEventForward={true}
+        useMouseEvents={false}
+        swipeDistance={0}
+        showPageCorners={true}
+        disableFlipByClick={false}
       >
         {/*  <PageCover>BOOK TITLE</PageCover> */}
-        {Array.from({ length: 40 }, (_, i) => (
+        {Array.from({ length: totalPage }, (_, i) => (
           <Page
             currentIdea={currentIdea}
             key={i + 1}
@@ -325,16 +339,27 @@ export function Browse2({
         {/* <PageCover>THE END</PageCover> */}
       </HTMLFlipBook>
 
-      <div className="container">
-        <div>
-          <button type="button" onClick={prevButtonClick}>
-            Previous page
-          </button>
-          [<span>{page}</span> of <span>{totalPage}</span>]
-          <button type="button" onClick={nextButtonClick}>
-            Next page
-          </button>
-        </div>
+      <div className="flex justify-center items-center py-4 bg-gray-50 rounded-b-lg shadow">
+        <button
+          type="button"
+          onClick={prevButtonClick}
+          className="px-4 py-2 mr-3 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={page === 0}
+        >
+          {"<"}
+        </button>
+        <span className="text-gray-600 font-medium">
+          Página <span className="text-blue-600">{page + 1}</span> de{" "}
+          <span className="text-blue-600">{totalPage}</span>
+        </span>
+        <button
+          type="button"
+          onClick={nextButtonClick}
+          className="px-4 py-2 ml-3 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={page + 1 === totalPage}
+        >
+          {">"}
+        </button>
       </div>
     </div>
   );

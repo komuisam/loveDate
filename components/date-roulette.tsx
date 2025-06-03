@@ -2,9 +2,8 @@
 import type React from "react";
 import { useState, useRef, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { dateIdeas } from "@/lib/date-ideas";
+import { dateIdeas } from "@/lib/date-ideas-object";
 import { Book, RefreshCw, Heart, ImageIcon, Edit } from "lucide-react";
-
 import { ContractTab } from "./ContractTab";
 import { CoverTab } from "./CoverTab";
 //import { Roulet } from "./Rulete";
@@ -117,17 +116,13 @@ export function DateRoulette() {
     }
     const idea = dateIdeas[ideaIndex];
     const existingSaved = savedDates.find((d) => d.id === ideaIndex);
-    let selected = null;
+    let selected: DateType | null = null;
     if (existingSaved) {
       selected = existingSaved;
     } else {
       selected = {
-        title: dateIdeas[ideaIndex],
         id: ideaIndex,
-        idea: idea,
-        imageUrl: null,
-        date: null,
-        notes: "",
+        ...dateIdeas[ideaIndex],
       };
     }
 
