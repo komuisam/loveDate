@@ -72,6 +72,7 @@ export function DateRoulette() {
           coverColor={coverColor}
           dataPage={dataPage}
           setDataPage={setDataPage}
+          totalPage={10}
         />
       ),
     },
