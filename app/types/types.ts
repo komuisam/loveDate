@@ -4,6 +4,8 @@ type DateType = {
   imageUrl: string | null;
   date: Date | null;
   notes: string;
+  totalPage?: number;
+  coverColor?: string;
 };
 type PartialDateType = Pick<DateType, "title" | "imageUrl" | "date" | "notes"> &
   Partial<Pick<DateType, "id">>;
@@ -14,6 +16,7 @@ type DataRoot = {
   person2: string;
   lastseccion: string;
   targetDate?: DateType;
+  totalPage: number;
 };
 
 export type { DataRoot, DateType, PartialDateType };

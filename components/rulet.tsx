@@ -18,18 +18,20 @@ const Wheel: React.FC<WheelProps> = ({
   extraRotations = 5,
 }) => {
   const COLORS = [
-    "#FFB6C1", // Light Pink - Rosado claro suave
-    "#FFD1DC", // Pastel Pink - Rosado pastel
-    "#FFECF1", // Soft Pink - Rosado muy suave
-    "#F8C8DC", // Cherry Blossom - Flor de cerezo
-    "#FF9BB3", // Watermelon Pink - Rosado melón
-    "#FDCEDF", // Fairy Tale - Cuento de hadas
-    "#FFDFD3", // Peach Pink - Durazno rosado
-    "#F4C2C2", // Baby Pink - Rosado bebé
-    "#E0BBE4", // Lavender Pink - Lavanda rosada
-    "#D8BFD8", // Thistle - Cardo suave
+    "#FFB6C1",
+    "#FFD1DC",
+    "#FFECF1",
+    "#F8C8DC",
+    "#FF9BB3",
+    "#FDCEDF",
+    "#FFDFD3",
+    "#F4C2C2",
+    "#E0BBE4",
+    "#D8BFD8",
   ];
+
   const radius = 230;
+  let spin = false;
 
   const currentRotation = useRef<number>(0);
   const spinBtnRef = useRef<SVGTextElement>(null);
@@ -120,7 +122,7 @@ const Wheel: React.FC<WheelProps> = ({
 
   // Spin the wheel and stop with the target number at the arrow
   const spinWheel = (targetNumber: number) => {
-    if (!numbersContainerRef.current || !spinBtnRef.current) return;
+    if (!numbersContainerRef.current || !spinBtnRef.current || spin) return;
 
     // Angle per number
     const angleStep = 360 / totalNumbers;
@@ -143,6 +145,7 @@ const Wheel: React.FC<WheelProps> = ({
     gsap.killTweensOf(numbersContainerRef.current);
 
     // Spin animation
+    spin = true;
     gsap.to(numbersContainerRef.current, {
       duration: spinDuration,
       rotation: totalRotation,
@@ -159,6 +162,7 @@ const Wheel: React.FC<WheelProps> = ({
         if (spinBtnRef.current) {
           // spinBtnRef.current.disabled = false;
         }
+        spin = false;
         showResult(targetNumber);
         if (onSpinComplete) {
           onSpinComplete(targetNumber);
@@ -211,6 +215,9 @@ const Wheel: React.FC<WheelProps> = ({
   }, [totalNumbers]);
 
   const handleSpinClick = () => {
+    if (spin) {
+      return;
+    }
     onSpinComplete(null);
     const randomNumber = Math.floor(Math.random() * totalNumbers) + 1;
     if (spinBtnRef.current) {
@@ -222,17 +229,20 @@ const Wheel: React.FC<WheelProps> = ({
 
   return (
     <div
-      className="flex  flex-col relative md:aspect-[4/3]  aspect-[3/3] w-full    mx-auto rounded-xl shadow-lg "
+      className="flex  flex-col relative  w-full min-h-[80vh]   mx-auto rounded-xl shadow-lg "
       style={{ backgroundColor: "white", border: "solid 8px " + coverColor }}
     >
       <div className="text-center w-full">
-        <h2 className="text-2xl font-bold" style={{ color: coverColor }}>
+        <h2
+          className="text-2xl font-bold cursor-pointer"
+          style={{ color: coverColor }}
+        >
           Gira y disfruta de las Citas
         </h2>
       </div>
-      <div className="flex align-middle justify-center">
+      <div className="flex align-middle justify-center  max-h-[60vh]">
         <svg
-          className="w-[80%]   min-w-64 top-1/2 left-1/2 "
+          className="w-[75vw]   min-w-64 top-1/2 left-1/2 "
           id="wheel"
           viewBox="0 0 500 500"
           ref={wheelRef}
@@ -330,6 +340,7 @@ const Wheel: React.FC<WheelProps> = ({
           />
 
           <text
+            className="cursor-pointer"
             id="spin-btn"
             ref={spinBtnRef}
             onClick={() => {

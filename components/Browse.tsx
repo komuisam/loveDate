@@ -97,7 +97,7 @@ export function Browse({
 
   return (
     <div
-      className="flex  flex-col relative md:aspect-[4/3]  aspect-[3/3] w-full mx-auto rounded-xl shadow-lg p-3 "
+      className="flex  flex-col relative  min-h-[80vh]  w-full mx-auto rounded-xl shadow-lg p-3 "
       style={{
         backgroundColor: "white",
         border: `8px solid ${coverColor}`,

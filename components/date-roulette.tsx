@@ -8,12 +8,12 @@ import { ContractTab } from "./ContractTab";
 import { CoverTab } from "./CoverTab";
 //import { Roulet } from "./Rulete";
 import Roulet from "@/components/rulet";
-import { Browse } from "./Browse";
+
 import { History } from "./History";
 import { DataRoot, DateType } from "@/app/types/types";
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
-import { Browse2 } from "./book";
+import { Browse } from "./book";
 
 export function DateRoulette() {
   const [spinComplete, onSpinComplete] = useState<number | null>(null);
@@ -61,18 +61,15 @@ export function DateRoulette() {
         />
       ),
     },
+
     browse: {
       label: "Explorar Ideas",
-      content: <Browse dataPage={dataPage} setDataPage={setDataPage} />,
-    },
-    browse2: {
-      label: "Explorar Ideas",
       content: (
-        <Browse2
+        <Browse
           coverColor={coverColor}
           dataPage={dataPage}
           setDataPage={setDataPage}
-          totalPage={10}
+          totalPage={Object.keys(dateIdeas).length}
         />
       ),
     },
@@ -129,20 +126,24 @@ export function DateRoulette() {
 
     setDataPage({ ...dataPage, targetDate: selected });
     setSelectedIdea(selected);
+    console.log({ selected });
   }
+
   return (
     <>
       {loading && (
-        <div className="container mx-auto py-2 px-4 ">
+        <div className="container mx-auto py-2 px-4">
           <Tabs
             value={activeTab} // Controlado por estado
             onValueChange={setActiveTab}
             defaultValue={
               dataPage?.lastseccion ? dataPage.lastseccion : "cover"
             }
-            className="w-full max-w-4xl mx-auto "
+            className="w-full  mx-auto "
           >
-            <TabsList className="p-0 grid w-full grid-cols-5 border-2 border-red-950 ">
+            <TabsList
+              className={`p-0 flex flex-row w-full  border-2 border-red-950 `}
+            >
               {Object.entries(sections).map(
                 ([key, section]: [key: any, section: any], i) => {
                   return (
@@ -152,7 +153,7 @@ export function DateRoulette() {
                       }}
                       key={i + key + "tablist"}
                       value={key}
-                      className="text-center items-center justify-center"
+                      className="text-center items-center justify-center w-full bg-black mx-2"
                     >
                       {section.label}
                     </TabsTrigger>
@@ -167,7 +168,7 @@ export function DateRoulette() {
                   <TabsContent
                     key={i + key + "section"}
                     value={key}
-                    className="mt-6"
+                    className=" mt-6"
                   >
                     {section.content}
                   </TabsContent>
@@ -224,7 +225,9 @@ export function DateRoulette() {
               }}
             >
               <CardContent>
-                <h3 className="text-xl font-bold mb-2">Tu idea de cita:</h3>
+                <h3 className="text-xl font-bold mb-2">
+                  #{selectedIdea?.id} Tu cita:{" "}
+                </h3>
                 <p className="text-lg">{selectedIdea?.title}</p>
                 <div className="mt-4 flex justify-center">
                   <Button

@@ -1,15 +1,25 @@
-import { useRef, useState, forwardRef, useEffect } from "react";
+import { useRef, useState, forwardRef } from "react";
 import HTMLFlipBook from "react-pageflip";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { DataRoot, DateType } from "@/app/types/types";
-import { Search, Calendar, ImageIcon } from "lucide-react";
+
+import {
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  Calendar,
+  ImageIcon,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { dateIdeas } from "@/lib/date-ideas-object";
+import { dateIdeas } from "@/lib/date-ideas";
+import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -20,7 +30,16 @@ import {
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { TimePickerDemo } from "@/components/time-picker";
 
-/* const PageCover = forwardRef<HTMLDivElement, DateType>((props, ref) => {
+/* ssssssssssssssssssssssssssss */
+interface PageProps {
+  number?: number;
+  children?: React.ReactNode;
+  coverColor: string;
+  totalPage: number;
+  currentIdea: any;
+}
+
+const PageCover = forwardRef<HTMLDivElement, PageProps>((props, ref) => {
   return (
     <div className="page page-cover" ref={ref} data-density="hard">
       <div className="page-content">
@@ -28,15 +47,20 @@ import { TimePickerDemo } from "@/components/time-picker";
       </div>
     </div>
   );
-}); */
+});
 
-const Page = forwardRef<HTMLDivElement, DateType>((props, ref) => {
-  const [savedDates, setSavedDates] = useState<
-    (DateType & { totalpage: number; coverColor: string })[]
-  >([]);
-  /*  const savedIndex = savedDates.findIndex((d) => d.id === props.id);
-  const saved = savedIndex >= 0 ? savedDates[savedIndex] : null; */
-  const { id, imageUrl, date, notes, title, totalpage, coverColor } = props;
+const Page = forwardRef<HTMLDivElement, PageProps>((props, ref) => {
+  const [savedDates, setSavedDates] = useState<DateType[]>([]);
+  const savedIndex = savedDates.findIndex((d) => d.id === props.number);
+  const saved = savedIndex >= 0 ? savedDates[savedIndex] : null;
+  const currentIdea = saved || {
+    id: props.number,
+    idea: "paginatedIdeas[0],",
+    imageUrl: null,
+    date: null,
+    totalPage: 1,
+    notes: "",
+  };
 
   return (
     <div
@@ -45,21 +69,25 @@ const Page = forwardRef<HTMLDivElement, DateType>((props, ref) => {
     >
       <div className="page-content">
         <div className="flex justify-between items-center mb-2">
-          <div className="text-sm text-gray-500">Idea #{id}</div>
+          <div className="text-sm text-gray-500">Idea #{props.number}</div>
           <div className="text-xs text-gray-400">
-            Página {id} de {totalpage}
+            Página {props.number} de {props.totalPage}
           </div>
         </div>
-        <h3 className="text-xl font-bold mb-3" style={{ color: coverColor }}>
-          Titulo: {title ?? "Por defecto"}
+        <h3
+          className="text-xl font-bold mb-3"
+          style={{ color: props.coverColor }}
+        >
+          Page header - {props.number}
         </h3>
 
+        {/* Image section */}
         <div className="mb-3">
-          {imageUrl ? (
+          {props.currentIdea.imageUrl ? (
             <div className="relative w-full h-32 rounded overflow-hidden">
               <img
-                src={imageUrl || "/placeholder.svg"}
-                alt={title}
+                src={props.currentIdea.imageUrl || "/placeholder.svg"}
+                alt={props.currentIdea.idea}
                 className="w-full h-full object-cover"
               />
               <Button
@@ -67,10 +95,17 @@ const Page = forwardRef<HTMLDivElement, DateType>((props, ref) => {
                 size="sm"
                 className="absolute top-2 right-2"
                 onClick={() => {
-                  /*  const updatedIdea = {
+                  const updatedIdea = {
                     ...props.currentIdea,
                     imageUrl: null,
-                  }; */
+                  };
+                  /*    const updatedDates = [...savedDates];
+                  if (savedIndex >= 0) {
+                    updatedDates[savedIndex] = updatedIdea;
+                  } else {
+                    updatedDates.push(updatedIdea);
+                  }
+                  setSavedDates(updatedDates); */
                 }}
               >
                 Eliminar
@@ -78,14 +113,22 @@ const Page = forwardRef<HTMLDivElement, DateType>((props, ref) => {
             </div>
           ) : (
             <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-md h-32">
-              <Button variant="ghost">
+              <Button
+                variant="ghost"
+                onClick={(e) => {
+                  // Set the selected idea for the file input
+                  //fileInputRef.current?.click();
+                }}
+              >
                 <ImageIcon className="mr-2 h-4 w-4" />
                 Subir imagen
               </Button>
             </div>
           )}
         </div>
+        {/* fin imagen section */}
 
+        {/* Date and time section */}
         <div className="mb-3">
           <Label className="text-sm mb-1 block">Fecha y Hora</Label>
           <div className="flex gap-2">
@@ -95,12 +138,12 @@ const Page = forwardRef<HTMLDivElement, DateType>((props, ref) => {
                   variant="outline"
                   className={cn(
                     "w-full justify-start text-left font-normal text-xs",
-                    !date && "text-muted-foreground"
+                    !currentIdea.date && "text-muted-foreground"
                   )}
                 >
                   <Calendar className="mr-2 h-3 w-3" />
-                  {date
-                    ? format(date, "PPP", {
+                  {currentIdea.date
+                    ? format(currentIdea.date, "PPP", {
                         locale: es,
                       })
                     : "Seleccionar fecha"}
@@ -109,26 +152,28 @@ const Page = forwardRef<HTMLDivElement, DateType>((props, ref) => {
               <PopoverContent className="w-auto p-0">
                 <CalendarComponent
                   mode="single"
-                  selected={date || undefined}
+                  selected={currentIdea.date || undefined}
                   onSelect={(date) => {
                     if (!date) return;
+
+                    // Create a new date object with the selected date
                     let newDate = date;
-                    if (date) {
+                    if (currentIdea.date) {
                       newDate = new Date(date);
-                      newDate.setHours(date.getHours());
-                      newDate.setMinutes(date.getMinutes());
+                      newDate.setHours(currentIdea.date.getHours());
+                      newDate.setMinutes(currentIdea.date.getMinutes());
                     }
 
                     const updatedIdea = {
-                      // ...currentIdea,
+                      ...currentIdea,
                       date: newDate,
                     };
                     const updatedDates = [...savedDates];
-                    /*  if (savedIndex >= 0) {
+                    if (savedIndex >= 0) {
                       updatedDates[savedIndex] = updatedIdea;
                     } else {
                       updatedDates.push(updatedIdea);
-                    } */
+                    }
                     setSavedDates(updatedDates);
                   }}
                   initialFocus
@@ -138,39 +183,48 @@ const Page = forwardRef<HTMLDivElement, DateType>((props, ref) => {
 
             <TimePickerDemo
               setDate={(time) => {
+                // Create a new date object with the selected time
                 let newDate = time;
-                if (date) {
-                  newDate = new Date(date);
+                if (currentIdea.date) {
+                  newDate = new Date(currentIdea.date);
                   newDate.setHours(time.getHours());
                   newDate.setMinutes(time.getMinutes());
                 }
 
                 const updatedIdea = {
+                  //...currentIdea,
                   date: newDate,
                 };
                 const updatedDates = [...savedDates];
-                /*  if (savedIndex >= 0) {
+                if (savedIndex >= 0) {
                   updatedDates[savedIndex] = updatedIdea;
                 } else {
                   updatedDates.push(updatedIdea);
-                } */
+                }
                 setSavedDates(updatedDates);
               }}
-              date={date || new Date()}
+              date={currentIdea.date || new Date()}
             />
           </div>
         </div>
 
+        {/* Notes section */}
         <div className="mb-3">
           <Label className="text-sm mb-1 block">Notas</Label>
           <Textarea
-            value={notes}
+            value={currentIdea.notes}
             onChange={(e) => {
-              e.stopPropagation();
-              /*  const updatedIdea = {
+              const updatedIdea = {
                 ...currentIdea,
                 notes: e.target.value,
-              }; */
+              };
+              const updatedDates = [...savedDates];
+              /*  if (savedIndex >= 0) {
+                updatedDates[savedIndex] = updatedIdea;
+              } else {
+                updatedDates.push(updatedIdea);
+              }
+              setSavedDates(updatedDates); */
             }}
             placeholder="Escribe tus notas sobre esta cita..."
             className="text-sm"
@@ -182,21 +236,24 @@ const Page = forwardRef<HTMLDivElement, DateType>((props, ref) => {
   );
 });
 
-export function Browse2({
+export function Browse({
   dataPage,
   setDataPage,
   coverColor,
-  totalPage = dateIdeas.length,
+  totalPage,
 }: {
   dataPage: DataRoot;
   setDataPage: (m: DataRoot) => void;
   coverColor: string;
   totalPage: number;
 }) {
-  const [pageSearh, setPageSearh] = useState<number | "">(1);
   const [currentIdea, setCurrentIdea] = useState(0);
-  const [page, setPage] = useState(0);
-  const flipBook = useRef<any>(null);
+  const [pageSearh, setPageSearh] = useState<number | "">(1);
+  const [page, setPage] = useState(
+    dataPage?.targetDate?.id ? dataPage?.targetDate?.id - 1 : 0
+  );
+
+  const flipBook = useRef<any>(null); // Tipo any porque el tipo exacto de HTMLFlipBook no está expuesto
   const [searchTerm, setSearchTerm] = useState(
     dataPage?.targetDate?.title ?? ""
   );
@@ -211,7 +268,25 @@ export function Browse2({
     setPage(targetPage);
     setPageSearh(targetPage + 1);
   };
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value, 10) || 0;
 
+    const clampedValue = Math.max(1, Math.min(value, totalPage));
+    if (value == 0) {
+      setPageSearh("");
+      return;
+    } else {
+      setPageSearh(clampedValue);
+    }
+  };
+
+  const nextButtonClick = () => {
+    flipBook.current?.pageFlip()?.flipNext();
+  };
+  console.log(` startZIndex=${dataPage?.targetDate?.id ?? 0}`);
+  const prevButtonClick = () => {
+    flipBook.current?.pageFlip()?.flipPrev();
+  };
   const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (value === "") {
@@ -231,34 +306,21 @@ export function Browse2({
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value, 10) || 0;
+  const [flipBg, setFlipBg] = useState("bg-white");
 
-    const clampedValue = Math.max(1, Math.min(value, totalPage));
-    if (value == 0) {
-      setPageSearh("");
-      return;
-    } else {
-      setPageSearh(clampedValue);
-    }
-  };
-
-  const nextButtonClick = () => {
-    flipBook.current?.pageFlip()?.flipNext();
-  };
-
-  const prevButtonClick = () => {
-    flipBook.current?.pageFlip()?.flipPrev();
-  };
+  const pageFlipColors = [
+    "bg-gradient-to-r from-pink-100 via-white to-pink-200",
+    "bg-gradient-to-r from-blue-100 via-white to-blue-200",
+    "bg-gradient-to-r from-green-100 via-white to-green-200",
+  ];
 
   const onPage = (e: { data: number }) => {
     setPage(e.data);
-    setPageSearh(e.data + 1);
+    setFlipBg(pageFlipColors[e.data % pageFlipColors.length]);
   };
-
   return (
     <div
-      className="justify-between flex  min-w-[385px] max-h-[80vh] min-h-[80vh] md:min-h-[70vh] flex-col relative md:aspect-[4/3] aspect-auto w-full mx-auto rounded-xl shadow-lg sm:p-3 py-3"
+      className="flex  flex-col relative max-h-[80vh]  w-full mx-auto rounded-xl shadow-lg p-3 "
       style={{
         backgroundColor: "white",
         border: `8px solid ${coverColor}`,
@@ -269,18 +331,23 @@ export function Browse2({
         <Input
           placeholder="Buscar ideas de citas..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+          }}
+          onBlur={() => {
+            console.log("dejo de pulsar");
+            //setDataPage()
+          }}
           className="pl-10"
         />
       </div>
-
       <HTMLFlipBook
         width={550}
-        style={{ backgroundColor: "#f8f9fa", borderRadius: "10px" }}
-        height={650}
+        height={500}
         size="stretch"
         minWidth={315}
-        maxWidth={800}
+        autoSize={true}
+        maxWidth={1000}
         flippingTime={1200}
         minHeight={400}
         maxHeight={1533}
@@ -289,33 +356,29 @@ export function Browse2({
         mobileScrollSupport={true}
         onFlip={onPage}
         ref={flipBook}
-        className={"bg-[#f8f9fa] rounded-sm"}
-        startPage={page}
-        drawShadow={true}
-        usePortrait={true}
-        startZIndex={0}
-        autoSize={true}
-        clickEventForward={true}
+        className={""}
+        style={{ color: "red" }}
+        startPage={page ?? 0}
+        drawShadow={false}
+        usePortrait={false}
+        clickEventForward={false}
         useMouseEvents={false}
         swipeDistance={0}
-        showPageCorners={true}
+        showPageCorners={false}
         disableFlipByClick={false}
+        startZIndex={0}
       >
-        {Array.from({ ...dateIdeas, length: totalPage }, (value, i) => {
-          return (
-            <Page
-              title={value.title}
-              id={i + 1}
-              imageUrl={value.imageUrl}
-              date={value.date}
-              notes={value.notes}
-              key={i + 1}
-              coverColor={coverColor}
-            >
-              Lorem ipsum...
-            </Page>
-          );
-        })}
+        {/*  <PageCover>BOOK TITLE</PageCover> */}
+        {Array.from({ length: 50 }, (_, i) => (
+          <Page
+            currentIdea={currentIdea}
+            key={i + 1}
+            number={i + 1}
+            coverColor={coverColor}
+            totalPage={totalPage}
+          ></Page>
+        ))}
+        {/* <PageCover>THE END</PageCover> */}
       </HTMLFlipBook>
 
       <div className="flex justify-center items-center py-4 bg-gray-50 rounded-b-lg shadow">

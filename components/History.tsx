@@ -55,7 +55,13 @@ export function History({ coverColor = "red" }: { coverColor: string }) {
   const datesWithImages = savedDates.filter((date) => date.imageUrl);
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div
+      className="relative  min-h-[80vh] w-full   py-4 mx-auto rounded-xl shadow-lg "
+      style={{
+        backgroundColor: "white",
+        border: `8px solid ${coverColor}`,
+      }}
+    >
       <div className="space-y-6">
         <h2
           className="text-2xl font-bold text-center"
