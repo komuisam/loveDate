@@ -30,7 +30,7 @@ import {
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { TimePickerDemo } from "@/components/time-picker";
 
-/* ssssssssssssssssssssssssssss */
+
 interface PageProps {
   number?: number;
   children?: React.ReactNode;
@@ -144,8 +144,8 @@ const Page = forwardRef<HTMLDivElement, PageProps>((props, ref) => {
                   <Calendar className="mr-2 h-3 w-3" />
                   {currentIdea.date
                     ? format(currentIdea.date, "PPP", {
-                        locale: es,
-                      })
+                      locale: es,
+                    })
                     : "Seleccionar fecha"}
                 </Button>
               </PopoverTrigger>

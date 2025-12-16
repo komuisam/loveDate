@@ -22,7 +22,7 @@ export function ContractTab({
 }: {
   coverColor: string;
   dataPage: DataRoot;
-  setDataPage: Dispatch<SetStateAction<DataRoot>>;
+  setDataPage: (data: DataRoot) => void;
 }) {
   const [person1, setPerson1] = useState(dataPage.person1 ?? "");
   const [person2, setPerson2] = useState(dataPage.person2 ?? "");

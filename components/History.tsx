@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Book, RefreshCw, Heart, ImageIcon } from "lucide-react";
+import { useStore } from "@/hooks/useStore";
 
 import { dateIdeas } from "@/lib/date-ideas";
 import { format } from "date-fns";
@@ -16,38 +17,18 @@ import { Browse } from "./Browse";
 
 type SavedDate = {
   id: number;
-  idea: string;
+  title: string;
   imageUrl: string | null;
   date: Date | null;
   notes: string;
 };
 
-export function History({ coverColor = "red" }: { coverColor: string }) {
-  const [savedDates, setSavedDates] = useState<SavedDate[]>([]);
+export function History() {
+  const { savedDates, coverColor } = useStore();
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
-  // Load saved dates from localStorage on initial render
-  useEffect(() => {
-    const saved = localStorage.getItem("savedDates");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        // Convertir las fechas de cadena a objetos Date
-        const withDates = parsed.map((item: any) => ({
-          ...item,
-          date: item.date ? new Date(item.date) : null,
-        }));
-        setSavedDates(withDates);
-      } catch (e) {
-        console.error("Error al analizar las fechas guardadas", e);
-      }
-    }
-  }, []);
+  // Load saved dates from localStorage on initial render (Managed by Persist middleware in store now)
 
-  // Save to localStorage whenever savedDates changes
-  useEffect(() => {
-    localStorage.setItem("savedDates", JSON.stringify(savedDates));
-  }, [savedDates]);
 
   // Save contract names to localStorage
 
@@ -83,7 +64,7 @@ export function History({ coverColor = "red" }: { coverColor: string }) {
                   <div className="aspect-square relative">
                     <img
                       src={date.imageUrl || "/placeholder.svg"}
-                      alt={date.idea}
+                      alt={date.title}
                       className="w-full h-full object-cover"
                     />
                     {date.date && (
@@ -94,7 +75,7 @@ export function History({ coverColor = "red" }: { coverColor: string }) {
                   </div>
                   <div className="p-3">
                     <h3 className="font-medium text-sm truncate">
-                      {date.idea}
+                      {date.title}
                     </h3>
                   </div>
                 </div>

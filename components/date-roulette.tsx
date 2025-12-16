@@ -9,25 +9,41 @@ import { CoverTab } from "./CoverTab";
 //import { Roulet } from "./Rulete";
 import Roulet from "@/components/rulet";
 
-import { History } from "./History";
+import { CalendarTab } from "./CalendarTab";
+import { History as HistoryComponent } from "./History";
+import { useStore } from "@/hooks/useStore";
 import { DataRoot, DateType } from "@/app/types/types";
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { Browse } from "./book";
 
 export function DateRoulette() {
-  const [spinComplete, onSpinComplete] = useState<number | null>(null);
-  const [coverColor, setCoverColor] = useState("#f43f5e"); // rose-500
-  const [loading, setLoading] = useState(false); // rose-500
+  const [spinComplete, onSpinCompleteLocal] = useState<number | null>(null); // Keep local for animation or temporary state
+  const [loading, setLoading] = useState(false);
 
-  const [dataPage, setDataPage] = useState<DataRoot>({
-    Dates: [],
-    person1: "",
-    person2: "",
-    lastseccion: "",
-  });
+  const {
+    dataPage,
+    setDataPage,
+    updateDataPage,
+    coverColor,
+    setCoverColor,
+    savedDates,
+    setLastSection
+  } = useStore();
 
-  const [activeTab, setActiveTab] = useState(dataPage?.lastseccion || "cover");
+  const onSpinComplete = (number: number | null) => {
+    onSpinCompleteLocal(number);
+    if (number !== null) {
+      selectIdeaToEdit(number);
+      // Wait a bit for the user to see the result on the wheel or immediately go
+      // Currently the original code showed a card.
+      // Let's keep the card logic but change the button in the card to go to Calendar
+      // Or per user request "guarde una section de calendario", maybe auto navigate
+    }
+  };
+
+  // const [activeTab, setActiveTab] = useState(dataPage?.lastseccion || "cover"); // Removed local state using store now
+
 
   const [selectedIdea, setSelectedIdea] = useState<DateType | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -73,40 +89,26 @@ export function DateRoulette() {
         />
       ),
     },
+    calendar: {
+      label: "Agendar",
+      content: <CalendarTab />,
+    },
     history: {
       label: "Recuerdos",
-      content: <History coverColor={coverColor} />,
+      content: <HistoryComponent />,
     },
   };
 
-  function safePageStatus() {
-    const dataPageSaved = localStorage.getItem("dataPage");
-    console.log(dataPageSaved);
-    if (dataPageSaved) {
-      try {
-        const parsed = JSON.parse(dataPageSaved);
-        setDataPage(parsed);
-      } catch (e) {
-        console.error("Error al obtener valores guardada: ", e);
-      }
-    }
-  }
-
-  // Load saved dates from localStorage on initial render
+  /* Safe page status and localStorage effects removed (handled by store) */
   useEffect(() => {
-    safePageStatus();
     setLoading(true);
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem("dataPage", JSON.stringify(dataPage));
-  }, [dataPage]);
 
   useEffect(() => {
     selectIdeaToEdit(spinComplete as number);
   }, [spinComplete]);
 
-  const [savedDates, setSavedDates] = useState<DateType[]>([]);
+  /* Removed local savedDates */
 
   function selectIdeaToEdit(ideaIndex: number) {
     if (!ideaIndex) {
@@ -134,26 +136,20 @@ export function DateRoulette() {
       {loading && (
         <div className="container mx-auto py-2 px-4">
           <Tabs
-            value={activeTab} // Controlado por estado
-            onValueChange={setActiveTab}
-            defaultValue={
-              dataPage?.lastseccion ? dataPage.lastseccion : "cover"
-            }
-            className="w-full  mx-auto "
+            value={dataPage.lastseccion || "cover"}
+            onValueChange={setLastSection}
+            className="w-full mx-auto"
           >
             <TabsList
-              className={`p-0 flex flex-row w-full  border-2 border-red-950 `}
+              className={`h-fit p-1 flex flex-row w-full bg-pink-100/50 backdrop-blur-sm border border-pink-200 rounded-lg shadow-sm`}
             >
               {Object.entries(sections).map(
                 ([key, section]: [key: any, section: any], i) => {
                   return (
                     <TabsTrigger
-                      onClick={() => {
-                        setDataPage({ ...dataPage, lastseccion: key });
-                      }}
                       key={i + key + "tablist"}
                       value={key}
-                      className="text-center items-center justify-center w-full bg-black mx-2"
+                      className="text-xl text-center flex-1 mx-1 data-[state=active]:bg-white data-[state=active]:text-pink-600 text-gray-600 hover:bg-white/50 transition-all duration-200"
                     >
                       {section.label}
                     </TabsTrigger>
@@ -237,8 +233,7 @@ export function DateRoulette() {
                       borderColor: coverColor,
                     }}
                     onClick={() => {
-                      setActiveTab("browse");
-                      setDataPage({ ...dataPage, lastseccion: "browse" });
+                      setLastSection("calendar");
                     }}
                   >
                     Guardar esta idea
