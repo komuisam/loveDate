@@ -3,23 +3,17 @@ import HTMLFlipBook from "react-pageflip";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { DataRoot, DateType } from "@/app/types/types";
+import { DataRoot } from "@/app/types/types";
 
 import {
-  ChevronLeft,
-  ChevronRight,
   Search,
   Calendar,
   ImageIcon,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { dateIdeas } from "@/lib/date-ideas";
-import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -27,8 +21,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { CustomCalendar } from "@/components/CustomCalendar";
 import { TimePickerDemo } from "@/components/time-picker";
+import { useStore } from "@/hooks/useStore";
 
 
 interface PageProps {
@@ -50,16 +45,22 @@ const PageCover = forwardRef<HTMLDivElement, PageProps>((props, ref) => {
 });
 
 const Page = forwardRef<HTMLDivElement, PageProps>((props, ref) => {
-  const [savedDates, setSavedDates] = useState<DateType[]>([]);
+  const { savedDates, addSavedDate, updateSavedDate } = useStore();
   const savedIndex = savedDates.findIndex((d) => d.id === props.number);
   const saved = savedIndex >= 0 ? savedDates[savedIndex] : null;
-  const currentIdea = saved || {
-    id: props.number,
+  const initialIdea = saved || {
+    id: props.number || 0,
+    title: `Idea #${props.number}`,
     idea: "paginatedIdeas[0],",
     imageUrl: null,
     date: null,
     totalPage: 1,
     notes: "",
+  };
+
+  const currentIdea = {
+    ...initialIdea,
+    date: initialIdea.date ? new Date(initialIdea.date) : null,
   };
 
   return (
@@ -150,10 +151,9 @@ const Page = forwardRef<HTMLDivElement, PageProps>((props, ref) => {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
-                <CalendarComponent
-                  mode="single"
-                  selected={currentIdea.date || undefined}
-                  onSelect={(date) => {
+                <CustomCalendar
+                  date={currentIdea.date || undefined}
+                  setDate={(date) => {
                     if (!date) return;
 
                     // Create a new date object with the selected date
@@ -167,16 +167,20 @@ const Page = forwardRef<HTMLDivElement, PageProps>((props, ref) => {
                     const updatedIdea = {
                       ...currentIdea,
                       date: newDate,
+                      title: currentIdea.title || `Cita #${props.number}`,
+                      id: props.number || 0, // Ensure ID is number
                     };
-                    const updatedDates = [...savedDates];
+
                     if (savedIndex >= 0) {
-                      updatedDates[savedIndex] = updatedIdea;
+                      updateSavedDate(updatedIdea);
                     } else {
-                      updatedDates.push(updatedIdea);
+                      addSavedDate(updatedIdea);
                     }
-                    setSavedDates(updatedDates);
                   }}
-                  initialFocus
+                  coverColor={props.coverColor}
+                  savedDates={savedDates}
+                  compact={true}
+                  className="bg-white border-0 shadow-none p-0"
                 />
               </PopoverContent>
             </Popover>
@@ -192,16 +196,17 @@ const Page = forwardRef<HTMLDivElement, PageProps>((props, ref) => {
                 }
 
                 const updatedIdea = {
-                  //...currentIdea,
+                  ...currentIdea,
                   date: newDate,
+                  title: currentIdea.title || `Cita #${props.number}`,
+                  id: props.number || 0,
                 };
-                const updatedDates = [...savedDates];
+
                 if (savedIndex >= 0) {
-                  updatedDates[savedIndex] = updatedIdea;
+                  updateSavedDate(updatedIdea);
                 } else {
-                  updatedDates.push(updatedIdea);
+                  addSavedDate(updatedIdea);
                 }
-                setSavedDates(updatedDates);
               }}
               date={currentIdea.date || new Date()}
             />

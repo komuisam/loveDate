@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Calendar } from "@/components/ui/calendar";
+import { CustomCalendar } from "@/components/CustomCalendar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useStore } from "@/hooks/useStore";
@@ -85,77 +85,12 @@ export function CalendarTab() {
 
             <Card className="w-full max-w-[95%] md:max-w-[80%] border-none shadow-none flex justify-center">
                 <CardContent className="p-0 w-full flex justify-center">
-                    <div className="relative flex items-center justify-center w-full">
-                        <Button
-                            variant="ghost"
-                            className="absolute left-0 z-10 hover:bg-transparent"
-                            onClick={() => setMonth((prev) => addMonths(prev, -1))}
-                        >
-                            <ChevronLeft className="h-10 w-10 text-gray-400" />
-                        </Button>
-
-                        <Calendar
-                            mode="single"
-                            selected={date}
-                            onSelect={setDate}
-                            month={month}
-                            onMonthChange={setMonth}
-                            locale={es}
-                            disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                            className="rounded-md border shadow-sm p-4 w-full flex justify-center"
-                            modifiers={{
-                                booked: savedDates
-                                    .filter((d) => d.date)
-                                    .map((d) => new Date(d.date!)),
-                            }}
-                            modifiersStyles={{
-                                booked: {
-                                    fontWeight: "bold",
-                                    textDecoration: "underline",
-                                    textDecorationColor: coverColor,
-                                    color: coverColor,
-                                    backgroundColor: "#fca5a5",
-                                }
-                            }}
-                            classNames={{
-                                nav: "hidden", // Hide internal navigation
-                                month: " text-2xl space-y-4 w-full",
-                                table: "w-full border-collapse space-y-1",
-                                button_previous: "left-0  top-2 border-none hover:bg-transparent",
-                                button_next: "bg-red-300  right-0 top-2 border-none hover:bg-transparent",
-                                head_row: "flex w-full justify-between mb-2",
-                                row: " flex w-full justify-between ",
-                                day: " text-lg sm:text-xl text-center h-16 w-16 sm:h-14 sm:w-14 lg:h-16 lg:w-16 p-0 font-normal aria-selected:opacity-100 hover:bg-gray-100 rounded-full",
-                                selected: "bg-gray-300 text-gray-900 hover:bg-gray-300 focus:bg-gray-300 opacity-100",
-                                disabled: "bg-gray-200  opacity-50 cursor-not-allowed hover:bg-gray-200 decoration-slate-500",
-                                cell: "flex h-10 w-10 sm:h-14 sm:w-14 lg:h-16 lg:w-16 items-center justify-center text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                                head_cell: "text-muted-foreground rounded-md w-full font-normal text-[0.8rem]",
-                            }}
-                            components={{
-                                // Navigation buttons are now external
-                                DayButton: (props: any) => {
-                                    const { day, modifiers, ...rest } = props;
-                                    const dateValue = day.date; // day is CalendarDay in v9
-
-                                    return (
-                                        <button {...rest}>
-                                            <div className="relative w-full h-full flex items-center justify-center text-sm sm:text-lg">
-                                                {dateValue.getDate()}
-                                            </div>
-                                        </button>
-                                    )
-                                }
-                            }}
-                        />
-
-                        <Button
-                            variant="ghost"
-                            className="absolute right-0 z-10 hover:bg-transparent"
-                            onClick={() => setMonth((prev) => addMonths(prev, 1))}
-                        >
-                            <ChevronRight className="h-10 w-10 text-gray-400" />
-                        </Button>
-                    </div>
+                    <CustomCalendar
+                        date={date}
+                        setDate={setDate}
+                        savedDates={savedDates}
+                        coverColor={coverColor}
+                    />
                 </CardContent>
             </Card>
 
