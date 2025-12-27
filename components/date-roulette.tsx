@@ -15,7 +15,8 @@ import { useStore } from "@/hooks/useStore";
 import { DataRoot, DateType } from "@/app/types/types";
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
-import { Browse } from "./book";
+// import { Browse } from "./book";
+import { TailwindBook } from "./TailwindBook";
 
 export function DateRoulette() {
   const [spinComplete, onSpinCompleteLocal] = useState<number | null>(null); // Keep local for animation or temporary state
@@ -81,11 +82,11 @@ export function DateRoulette() {
     browse: {
       label: "Explorar Ideas",
       content: (
-        <Browse
+        <TailwindBook
           coverColor={coverColor}
           dataPage={dataPage}
           setDataPage={setDataPage}
-          totalPage={Object.keys(dateIdeas).length}
+          onSelect={() => setLastSection("calendar")}
         />
       ),
     },
