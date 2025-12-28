@@ -6,9 +6,15 @@ interface AppState {
     dataPage: DataRoot;
     savedDates: DateType[];
     coverColor: string;
+    coverTitle: string;
+    coverSubtitle: string;
+    coverImage: string | null;
     setDataPage: (data: DataRoot) => void;
     updateDataPage: (updates: Partial<DataRoot>) => void;
     setCoverColor: (color: string) => void;
+    setCoverTitle: (title: string) => void;
+    setCoverSubtitle: (subtitle: string) => void;
+    setCoverImage: (image: string | null) => void;
     addSavedDate: (date: DateType) => void;
     updateSavedDate: (date: DateType) => void;
     removeSavedDate: (id: number) => void;
@@ -27,6 +33,9 @@ export const useStore = create<AppState>()(
             },
             savedDates: [],
             coverColor: "#f43f5e", // rose-500 default
+            coverTitle: "Nuestra Agenda de Citas",
+            coverSubtitle: "100 Ideas para Compartir Juntos",
+            coverImage: null,
 
             setDataPage: (data) => set({ dataPage: data }),
 
@@ -35,6 +44,12 @@ export const useStore = create<AppState>()(
             })),
 
             setCoverColor: (color) => set({ coverColor: color }),
+            
+            setCoverTitle: (title) => set({ coverTitle: title }),
+            
+            setCoverSubtitle: (subtitle) => set({ coverSubtitle: subtitle }),
+            
+            setCoverImage: (image) => set({ coverImage: image }),
 
             addSavedDate: (date) => set((state) => {
                 // Avoid duplicates or update existing

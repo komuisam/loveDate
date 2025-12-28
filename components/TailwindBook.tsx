@@ -13,12 +13,13 @@ import { CustomCalendar } from "@/components/CustomCalendar";
 import { useStore } from "@/hooks/useStore";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useIsMobile } from "@/components/ui/use-mobile";
 
 interface BookProps {
     coverColor: string;
     dataPage?: DataRoot;
     setDataPage?: (data: DataRoot) => void;
-    onSelect?: () => void; // Optional navigation fallback
+    onSelect?: () => void;
 }
 
 // A single physical sheet of paper with two sides (Front & Back)
@@ -30,6 +31,7 @@ function Sheet({
     backContent,
     onFlip,
     color,
+    isMobile
 }: {
     index: number;
     flipped: boolean;
@@ -38,6 +40,7 @@ function Sheet({
     backContent: React.ReactNode;
     onFlip: () => void;
     color: string;
+    isMobile: boolean;
 }) {
     return (
         <div
@@ -47,9 +50,11 @@ function Sheet({
                 transformStyle: "preserve-3d",
                 transform: `rotateY(${flipped ? -180 : 0}deg) translateZ(1px)`,
                 transformOrigin: "left center",
-                transitionProperty: "transform, z-index",
-                transitionDuration: "700ms, 0ms",
-                transitionDelay: `0ms, ${flipped ? 350 : 0}ms`,
+                transitionProperty: "transform, z-index, opacity",
+                transitionDuration: "700ms, 0ms, 0ms",
+                transitionDelay: `0ms, 350ms, ${isMobile ? (flipped ? 700 : 0) : 0}ms`,
+                opacity: isMobile && flipped ? 0 : 1,
+                pointerEvents: isMobile && flipped ? 'none' : 'auto',
             }}
             onClick={(e) => {
                 e.stopPropagation();
@@ -57,17 +62,19 @@ function Sheet({
             }}
         >
             {/* FRONT FACE */}
-            <div className="absolute inset-0 w-full h-full backface-hidden bg-[#fdfaf7] border border-stone-200 shadow-sm overflow-hidden flex flex-col items-center p-6 rounded-r-md" style={{ backfaceVisibility: "hidden" }}>
-                <div className="absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-stone-300/30 to-transparent pointer-events-none" />
+            <div className={cn(
+                "absolute inset-0 w-full h-full backface-hidden bg-white overflow-hidden flex flex-col items-center p-6",
+                isMobile ? "rounded-md border-[8px]" : "rounded-r-md border-y-[8px] border-r-[8px] border-l-0"
+            )} style={{ backfaceVisibility: "hidden", borderColor: color }}>
                 {frontContent}
-                <div className="absolute inset-2 border rounded-r-sm pointer-events-none" style={{ borderColor: color, opacity: 0.1 }} />
             </div>
 
             {/* BACK FACE */}
-            <div className="absolute inset-0 w-full h-full backface-hidden bg-[#fdfaf7] border border-stone-200 shadow-sm overflow-hidden flex flex-col items-center p-6 rounded-l-md" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}>
-                <div className="absolute right-0 top-0 bottom-0 w-4 bg-gradient-to-l from-stone-300/30 to-transparent pointer-events-none" />
+            <div className={cn(
+                "absolute inset-0 w-full h-full backface-hidden bg-white overflow-hidden flex flex-col items-center p-6",
+                isMobile ? "rounded-md border-[8px]" : "rounded-l-md border-y-[8px] border-l-[8px] border-r-0"
+            )} style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)", borderColor: color }}>
                 {backContent}
-                <div className="absolute inset-2 border rounded-l-sm pointer-events-none" style={{ borderColor: color, opacity: 0.1 }} />
             </div>
         </div>
     );
@@ -76,6 +83,7 @@ function Sheet({
 export function TailwindBook({ coverColor, dataPage, setDataPage, onSelect }: BookProps) {
     const { addSavedDate, savedDates } = useStore();
     const ideas = Object.values(dateIdeas);
+    const isMobile = useIsMobile();
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -87,14 +95,29 @@ export function TailwindBook({ coverColor, dataPage, setDataPage, onSelect }: Bo
 
     const sheets = useMemo(() => {
         const arr = [];
-        arr.push({ id: "cover", front: { type: "cover", data: null }, back: { type: "idea", data: ideas[0] } });
-        let i = 1;
-        while (i < ideas.length) {
-            arr.push({ id: `idea-${i}`, front: { type: "idea", data: ideas[i] }, back: { type: "idea", data: ideas[i + 1] || null } });
-            i += 2;
+        // Cover Sheet
+        arr.push({ id: "cover", front: { type: "cover", data: null }, back: isMobile ? null : { type: "idea", data: ideas[0] } });
+
+        if (isMobile) {
+            // Mobile: 1 Idea per Sheet (Front only). 
+            // We start from idea 0 (if not covered above).
+            // Actually, for consistent indexing:
+            // Sheet 0: Cover (Front). Back: null/empty?
+            // Sheet 1: Idea 0 (Front). Back: null?
+            ideas.forEach((idea, idx) => {
+                arr.push({ id: `idea-${idx}`, front: { type: "idea", data: idea }, back: null });
+            });
+        } else {
+            // Desktop: 2 Ideas per Sheet (Front/Back)
+            // Sheet 0: Cover (Front). Back: Idea 0.
+            let i = 1;
+            while (i < ideas.length) {
+                arr.push({ id: `idea-${i}`, front: { type: "idea", data: ideas[i] }, back: { type: "idea", data: ideas[i + 1] || null } });
+                i += 2;
+            }
         }
         return arr;
-    }, [ideas]);
+    }, [ideas, isMobile]);
 
     const [currentSheetIndex, setCurrentSheetIndex] = useState(-1);
     const [searchTerm, setSearchTerm] = useState("");
@@ -104,13 +127,23 @@ export function TailwindBook({ coverColor, dataPage, setDataPage, onSelect }: Bo
 
     const handleSearch = (term: string) => {
         const idx = ideas.findIndex(i => i.title.toLowerCase().includes(term.toLowerCase()));
-        if (idx !== -1) setCurrentSheetIndex(Math.floor(idx / 2));
+        if (idx !== -1) {
+             if (isMobile) {
+                 // Mobile: Sheet 0 is cover. Sheet 1 is Idea 0. 
+                 // So Idea idx is at Sheet idx + 1.
+                 // To view Sheet X, we need `currentSheetIndex` to be X-1 (flipped previous).
+                 // So to view Sheet (idx+1), we need index to be idx.
+                 setCurrentSheetIndex(idx);
+             } else {
+                 setCurrentSheetIndex(Math.floor(idx / 2));
+             }
+        }
     };
 
     const openSelectionModal = (idea: any) => {
         setActiveIdea(idea);
         setSelectedImage(null);
-        setNotes(""); // Reset notes
+        setNotes("");
 
         const existing = savedDates.find(d => d.id === idea.id);
         if (existing && existing.date) setSelectedDate(new Date(existing.date));
@@ -160,9 +193,13 @@ export function TailwindBook({ coverColor, dataPage, setDataPage, onSelect }: Bo
             </div>
 
             {/* Book */}
-            <div className="relative w-[340px] md:w-[600px] h-[500px]" style={{ perspective: "1500px" }}>
-                <div className="absolute left-1/2 top-0 bottom-0 w-4 -ml-2 bg-stone-900 rounded-sm shadow-2xl" />
-                <div className="absolute right-0 w-1/2 h-full top-0 preserve-3d">
+            {/* Mobile: Full Width, centered (no 50% split). Desktop: Split. */}
+            <div className={cn("relative h-[500px]", isMobile ? "w-full max-w-sm px-4" : "w-[340px] md:w-full max-w-5xl")} style={{ perspective: "1500px" }}>
+                {!isMobile && <div className="absolute left-1/2 top-0 bottom-0 w-4 -ml-2 rounded-sm" style={{ backgroundColor: coverColor }} />}
+                
+                <div className={cn("absolute top-0 h-full preserve-3d transition-all duration-500", 
+                    isMobile ? "w-full left-0 px-4" : "right-0 w-1/2"
+                )}>
                     {sheets.map((sheet, i) => (
                         <Sheet
                             key={sheet.id}
@@ -171,6 +208,7 @@ export function TailwindBook({ coverColor, dataPage, setDataPage, onSelect }: Bo
                             zIndex={i <= currentSheetIndex ? i : sheets.length - i}
                             color={coverColor}
                             onFlip={() => i <= currentSheetIndex ? setCurrentSheetIndex(i - 1) : setCurrentSheetIndex(i)}
+                            isMobile={!!isMobile}
                             frontContent={
                                 <div className="h-full flex flex-col items-center justify-between text-center w-full">
                                     {sheet.front.type === "cover" ? (
@@ -186,7 +224,7 @@ export function TailwindBook({ coverColor, dataPage, setDataPage, onSelect }: Bo
                                             </div>
                                             <div className="flex-1 flex flex-col items-center justify-center py-4">
                                                 <h2 className="text-2xl font-medium text-stone-700 font-serif mb-4 leading-snug">{sheet.front.data?.title}</h2>
-                                                <div className="w-12 h-12 rounded-full flex items-center justify-center bg-stone-50 text-stone-300 mb-4"><span className="text-xl font-serif">{(i * 2)}</span></div>
+                                                <div className="w-12 h-12 rounded-full flex items-center justify-center bg-stone-50 text-stone-300 mb-4"><span className="text-xl font-serif">{sheet.front.data?.id}</span></div>
                                                 <p className="text-sm text-stone-500 line-clamp-6">Una cita romántica perfecta...</p>
                                             </div>
                                             <div className="w-full pt-4 border-t">
@@ -201,26 +239,42 @@ export function TailwindBook({ coverColor, dataPage, setDataPage, onSelect }: Bo
                                 </div>
                             }
                             backContent={
+                                // On Mobile, back content is null/empty for 'discard pile' effect.
+                                // On Desktop, it's the next page.
                                 <div className="h-full flex flex-col items-center justify-between text-center w-full">
-                                    {sheet.back.data ? (
+                                    {sheet.back ? (
                                         <>
-                                            <div className="w-full flex justify-between items-center text-xs text-stone-400 font-serif uppercase tracking-widest border-b pb-2">
-                                                <span>#{sheet.back.data.id}</span><span>Date Night</span>
-                                            </div>
-                                            <div className="flex-1 flex flex-col items-center justify-center py-4">
-                                                <h2 className="text-2xl font-medium text-stone-700 font-serif mb-4 leading-snug">{sheet.back.data.title}</h2>
-                                                <div className="w-12 h-12 rounded-full flex items-center justify-center bg-stone-50 text-stone-300 mb-4"><span className="text-xl font-serif">{(i * 2) + 1}</span></div>
-                                                <p className="text-sm text-stone-500 line-clamp-6">Una aventura única...</p>
-                                            </div>
-                                            <div className="w-full pt-4 border-t">
-                                                <Button variant="outline" size="sm" className="w-full text-xs hover:bg-stone-50"
-                                                    onClick={(e) => { e.stopPropagation(); openSelectionModal(sheet.back.data); }}
-                                                >
-                                                    Seleccionar Idea
-                                                </Button>
-                                            </div>
+                                            {sheet.back.type === 'idea' && sheet.back.data ? (
+                                                <>
+                                                    <div className="w-full flex justify-between items-center text-xs text-stone-400 font-serif uppercase tracking-widest border-b pb-2">
+                                                        <span>#{sheet.back.data.id}</span><span>Date Night</span>
+                                                    </div>
+                                                    <div className="flex-1 flex flex-col items-center justify-center py-4">
+                                                        <h2 className="text-2xl font-medium text-stone-700 font-serif mb-4 leading-snug">{sheet.back.data.title}</h2>
+                                                        <div className="w-12 h-12 rounded-full flex items-center justify-center bg-stone-50 text-stone-300 mb-4"><span className="text-xl font-serif">{sheet.back.data.id}</span></div>
+                                                        <p className="text-sm text-stone-500 line-clamp-6">Una aventura única...</p>
+                                                    </div>
+                                                    <div className="w-full pt-4 border-t">
+                                                        <Button variant="outline" size="sm" className="w-full text-xs hover:bg-stone-50"
+                                                            onClick={(e) => { e.stopPropagation(); openSelectionModal(sheet.back?.data); }}
+                                                        >
+                                                            Seleccionar Idea
+                                                        </Button>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                 // Mobile Back is just empty or texture
+                                                 <div className="flex-1 flex items-center justify-center"><div className="w-16 h-16 rounded-full bg-stone-100/50" /></div>
+                                            )}
                                         </>
-                                    ) : <div className="flex-1 flex items-center justify-center"><p className="text-stone-300 font-serif italic">Fin del libro</p></div>}
+                                    ) : (
+                                         <div className="flex-1 flex items-center justify-center">
+                                            {isMobile ? 
+                                              <p className="text-stone-300 font-serif italic text-sm">Desliza para volver</p> 
+                                              : <p className="text-stone-300 font-serif italic">Fin del libro</p>
+                                            }
+                                         </div>
+                                    )}
                                 </div>
                             }
                         />
@@ -231,7 +285,22 @@ export function TailwindBook({ coverColor, dataPage, setDataPage, onSelect }: Bo
             {/* Controls */}
             <div className="flex items-center gap-6 mt-4">
                 <Button variant="outline" size="icon" onClick={handlePrev} disabled={currentSheetIndex === -1} className="rounded-full shadow-sm"><ChevronLeft className="h-4 w-4" /></Button>
-                <span className="text-sm text-stone-500 font-medium font-serif min-w-24 text-center">Página {currentSheetIndex + 2} / {sheets.length + 1}</span>
+                <span className="text-sm text-stone-500 font-medium font-serif min-w-24 text-center">
+                    {isMobile ? 
+                     // Mobile: Sheet 0 is cover. Sheet 1 is Idea 0 (displayed as #1). 
+                     // We want "Idea X / Total". 
+                     // currentSheetIndex=-1 (Cover). 
+                     // currentSheetIndex=0 (Idea 0.. wait. If Sheet 0 is cover, then Sheet 1 (Idea 0) is visible.
+                     // So currentSheetIndex=0 means Sheet 1 is on top? No.
+                     // currentSheetIndex is the index of the last FLIPPED sheet.
+                     // If -1: Cover is visible (Sheet 0 Front).
+                     // If 0: Cover is flipped. Idea 0 (Sheet 1) is visible.
+                     // So we are viewing Idea # (currentSheetIndex - something?)
+                     // If index=0 -> Viewing Idea 0 (#1).
+                     `Idea ${currentSheetIndex + 1} / ${ideas.length}` 
+                     : `Página ${currentSheetIndex + 2} / ${sheets.length + 1}`
+                    }
+                </span>
                 <Button variant="outline" size="icon" onClick={handleNext} disabled={currentSheetIndex === sheets.length - 1} className="rounded-full shadow-sm"><ChevronRight className="h-4 w-4" /></Button>
             </div>
 

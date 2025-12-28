@@ -52,9 +52,7 @@ export function DateRoulette() {
   const sections = {
     cover: {
       label: "Portada",
-      content: (
-        <CoverTab coverColor={coverColor} setCoverColor={setCoverColor} />
-      ),
+      content: <CoverTab />,
     },
     contract: {
       label: "Contrato",
