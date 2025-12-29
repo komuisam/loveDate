@@ -29,7 +29,8 @@ export function DateRoulette() {
     coverColor,
     setCoverColor,
     savedDates,
-    setLastSection
+    setLastSection,
+    appBgImage
   } = useStore();
 
   const onSpinComplete = (number: number | null) => {
@@ -106,6 +107,15 @@ export function DateRoulette() {
   useEffect(() => {
     selectIdeaToEdit(spinComplete as number);
   }, [spinComplete]);
+
+  // Apply global background
+  useEffect(() => {
+    if (appBgImage) {
+        document.body.style.backgroundImage = `url(${appBgImage})`;
+    } else {
+        document.body.style.backgroundImage = ''; 
+    }
+  }, [appBgImage]);
 
   /* Removed local savedDates */
 

@@ -56,7 +56,8 @@ export function CoverTab() {
     coverColor, setCoverColor, 
     coverTitle, setCoverTitle, 
     coverSubtitle, setCoverSubtitle, 
-    coverImage, setCoverImage 
+    coverImage, setCoverImage,
+    appBgImage, setAppBgImage
   } = useStore();
 
   const [editingCover, setEditingCover] = useState(false);
@@ -67,6 +68,7 @@ export function CoverTab() {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const appBgInputRef = useRef<HTMLInputElement>(null);
 
   const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
     setCroppedAreaPixels(croppedAreaPixels);
@@ -81,6 +83,15 @@ export function CoverTab() {
       // Reset crop/zoom specific to new image if desired
       setZoom(1);
       setCrop({ x: 0, y: 0 });
+    }
+  };
+
+  const handleAppBgChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const bgUrl = await readFile(file);
+      // Directly set background without crop for now, or could use crop too if needed
+      setAppBgImage(bgUrl);
     }
   };
 
@@ -118,85 +129,125 @@ export function CoverTab() {
 
         <div className="absolute inset-0 p-8 flex flex-col items-center justify-center text-white z-10">
           {editingCover ? (
-            <div className="w-full space-y-4 max-w-md bg-black/50 p-6 rounded-xl backdrop-blur-sm">
-              <div className="space-y-2">
-                <Label htmlFor="cover-title" className="text-white">
-                  Título
-                </Label>
-                <Input
-                  id="cover-title"
-                  value={coverTitle}
-                  onChange={(e) => setCoverTitle(e.target.value)}
-                  className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
-                />
-              </div>
+            <div className="w-full max-w-md md:max-w-4xl bg-black/60 p-6 rounded-xl backdrop-blur-md transition-all duration-300">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Left Column: Text & Color */}
+                <div className="space-y-5">
+                  <div className="space-y-2">
+                    <Label htmlFor="cover-title" className="text-white text-sm font-medium">
+                      Título
+                    </Label>
+                    <Input
+                      id="cover-title"
+                      value={coverTitle}
+                      onChange={(e) => setCoverTitle(e.target.value)}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/20 transition-all"
+                    />
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="cover-subtitle" className="text-white">
-                  Subtítulo
-                </Label>
-                <Textarea
-                  id="cover-subtitle"
-                  value={coverSubtitle}
-                  onChange={(e) => setCoverSubtitle(e.target.value)}
-                  className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
-                />
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cover-subtitle" className="text-white text-sm font-medium">
+                      Subtítulo
+                    </Label>
+                    <Textarea
+                      id="cover-subtitle"
+                      value={coverSubtitle}
+                      onChange={(e) => setCoverSubtitle(e.target.value)}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/20 transition-all resize-none h-24"
+                    />
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="cover-color" className="text-white">
-                  Color de Fondo (si no hay imagen)
-                </Label>
-                <div className="flex items-center gap-3">
-                  <Input
-                    id="cover-color"
-                    type="color"
-                    value={coverColor}
-                    onChange={(e) => setCoverColor(e.target.value)}
-                    className="w-12 h-12 p-1 bg-transparent border-white/30 cursor-pointer"
-                  />
-                  <Input
-                    value={coverColor}
-                    onChange={(e) => setCoverColor(e.target.value)}
-                    className="bg-white/20 border-white/30 text-white"
-                  />
+                  <div className="space-y-2">
+                    <Label htmlFor="cover-color" className="text-white text-sm font-medium">
+                      Color Principal
+                    </Label>
+                    <div className="flex items-center gap-3">
+                      <div className="relative overflow-hidden rounded-full w-10 h-10 border border-white/30 shadow-sm">
+                          <Input
+                            id="cover-color"
+                            type="color"
+                            value={coverColor}
+                            onChange={(e) => setCoverColor(e.target.value)}
+                            className="absolute -top-2 -left-2 w-16 h-16 p-0 border-none cursor-pointer bg-transparent"
+                          />
+                      </div>
+                      <Input
+                        value={coverColor}
+                        onChange={(e) => setCoverColor(e.target.value)}
+                        className="bg-white/10 border-white/20 text-white font-mono text-xs flex-1"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column: Images */}
+                <div className="space-y-4">
+                     <Label className="text-white text-sm font-medium">Imágenes</Label>
+                     <div className="grid grid-cols-2 gap-4">
+                        {/* Cover Image */}
+                         <div 
+                              className="aspect-square relative border-2 border-dashed border-white/20 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 hover:border-white/40 transition-all group overflow-hidden"
+                              onClick={() => fileInputRef.current?.click()}
+                            >
+                                {coverImage ? (
+                                    <>
+                                        <img src={coverImage} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500" />
+                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                             <Edit className="w-6 h-6 text-white" />
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="flex flex-col items-center p-2 text-center">
+                                        <Upload className="h-6 w-6 mb-2 text-white/60" />
+                                        <span className="text-xs text-white/80">Portada</span>
+                                    </div>
+                                )}
+                            </div>
+
+                        {/* App Bg Image */}
+                         <div 
+                              className="aspect-square relative border-2 border-dashed border-white/20 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 hover:border-white/40 transition-all group overflow-hidden"
+                              onClick={() => appBgInputRef.current?.click()}
+                            >
+                               {appBgImage ? (
+                                    <>
+                                        <img src={appBgImage} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500" />
+                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                             <Edit className="w-6 h-6 text-white" />
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="flex flex-col items-center p-2 text-center">
+                                        <ImageIcon className="h-6 w-6 mb-2 text-white/60" />
+                                        <span className="text-xs text-white/80">Fondo App</span>
+                                    </div>
+                                )}
+                            </div>
+                     </div>
+                     
+                     {/* Remove Buttons */}
+                     <div className="flex gap-2">
+                        {coverImage && (
+                            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setCoverImage(null); }} className="flex-1 text-[10px] h-8 text-red-300 hover:text-red-100 hover:bg-red-500/20">
+                                Quitar Portada
+                            </Button>
+                        )}
+                        {appBgImage && (
+                            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setAppBgImage(null); }} className="flex-1 text-[10px] h-8 text-red-300 hover:text-red-100 hover:bg-red-500/20">
+                                Quitar Fondo
+                            </Button>
+                        )}
+                     </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-white">Imagen de Portada</Label>
-                <div 
-                  className="border-2 border-dashed border-white/30 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 transition-colors"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Upload className="h-6 w-6 mb-2 text-white/50" />
-                  <span className="text-sm text-white/80">Subir imagen...</span>
-                </div>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  accept="image/*"
-                  className="hidden"
-                />
-                {coverImage && (
-                   <Button 
-                      variant="destructive" 
-                      size="sm" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setCoverImage(null);
-                      }}
-                      className="w-full mt-2"
-                   >
-                     Quitar Imagen
-                   </Button>
-                )}
-              </div>
+               {/* Hidden Inputs */}
+               <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+               <input type="file" ref={appBgInputRef} onChange={handleAppBgChange} accept="image/*" className="hidden" />
 
               <Button
                 onClick={() => setEditingCover(false)}
-                className="w-full mt-4 bg-white text-black hover:bg-white/90"
+                className="w-full mt-8 bg-white text-black hover:bg-white/90 font-medium shadow-lg hover:shadow-xl transition-all"
               >
                 <Check className="mr-2 h-4 w-4" />
                 Guardar Cambios

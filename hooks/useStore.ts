@@ -9,12 +9,14 @@ interface AppState {
     coverTitle: string;
     coverSubtitle: string;
     coverImage: string | null;
+    appBgImage: string | null;
     setDataPage: (data: DataRoot) => void;
     updateDataPage: (updates: Partial<DataRoot>) => void;
     setCoverColor: (color: string) => void;
     setCoverTitle: (title: string) => void;
     setCoverSubtitle: (subtitle: string) => void;
     setCoverImage: (image: string | null) => void;
+    setAppBgImage: (image: string | null) => void;
     addSavedDate: (date: DateType) => void;
     updateSavedDate: (date: DateType) => void;
     removeSavedDate: (id: number) => void;
@@ -36,6 +38,7 @@ export const useStore = create<AppState>()(
             coverTitle: "Nuestra Agenda de Citas",
             coverSubtitle: "100 Ideas para Compartir Juntos",
             coverImage: null,
+            appBgImage: null,
 
             setDataPage: (data) => set({ dataPage: data }),
 
@@ -50,6 +53,7 @@ export const useStore = create<AppState>()(
             setCoverSubtitle: (subtitle) => set({ coverSubtitle: subtitle }),
             
             setCoverImage: (image) => set({ coverImage: image }),
+            setAppBgImage: (image) => set({ appBgImage: image }),
 
             addSavedDate: (date) => set((state) => {
                 // Avoid duplicates or update existing

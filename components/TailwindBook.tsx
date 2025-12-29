@@ -64,16 +64,16 @@ function Sheet({
             {/* FRONT FACE */}
             <div className={cn(
                 "absolute inset-0 w-full h-full backface-hidden bg-white overflow-hidden flex flex-col items-center p-6",
-                isMobile ? "rounded-md border-[8px]" : "rounded-r-md border-y-[8px] border-r-[8px] border-l-0"
-            )} style={{ backfaceVisibility: "hidden", borderColor: color }}>
+                isMobile ? "rounded-md border-[8px]" : "rounded-r-md border-y-[8px] border-r-[8px] border-l-[4px]"
+            )} style={{ backfaceVisibility: "hidden", borderColor: color, borderLeftColor: isMobile ? color : 'transparent', backgroundClip: 'padding-box' }}>
                 {frontContent}
             </div>
 
             {/* BACK FACE */}
             <div className={cn(
                 "absolute inset-0 w-full h-full backface-hidden bg-white overflow-hidden flex flex-col items-center p-6",
-                isMobile ? "rounded-md border-[8px]" : "rounded-l-md border-y-[8px] border-l-[8px] border-r-0"
-            )} style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)", borderColor: color }}>
+                isMobile ? "rounded-md border-[8px]" : "rounded-l-md border-y-[8px] border-l-[8px] border-r-[4px]"
+            )} style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)", borderColor: color, borderRightColor: isMobile ? color : 'transparent', backgroundClip: 'padding-box' }}>
                 {backContent}
             </div>
         </div>
