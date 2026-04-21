@@ -30,7 +30,9 @@ export function DateRoulette() {
     setCoverColor,
     savedDates,
     setLastSection,
-    appBgImage
+    appBgImage,
+    contractAccepted,
+    setContractAccepted
   } = useStore();
 
   const onSpinComplete = (number: number | null) => {
@@ -53,7 +55,7 @@ export function DateRoulette() {
   const sections = {
     cover: {
       label: "Portada",
-      content: <CoverTab />,
+      content: <CoverTab setLastSection={setLastSection} />,
     },
     contract: {
       label: "Contrato",
@@ -62,6 +64,9 @@ export function DateRoulette() {
           coverColor={coverColor}
           dataPage={dataPage}
           setDataPage={setDataPage}
+          setLastSection={setLastSection}
+          setContractAccepted={setContractAccepted}
+          contractAccepted={contractAccepted}
         />
       ),
     },
@@ -149,23 +154,29 @@ export function DateRoulette() {
             onValueChange={setLastSection}
             className="w-full mx-auto"
           >
-            <TabsList
-              className={`h-fit p-1 flex flex-row w-full bg-pink-100/50 backdrop-blur-sm border border-pink-200 rounded-lg shadow-sm`}
-            >
-              {Object.entries(sections).map(
-                ([key, section]: [key: any, section: any], i) => {
-                  return (
-                    <TabsTrigger
-                      key={i + key + "tablist"}
-                      value={key}
-                      className="text-xl text-center flex-1 mx-1 data-[state=active]:bg-white data-[state=active]:text-pink-600 text-gray-600 hover:bg-white/50 transition-all duration-200"
-                    >
-                      {section.label}
-                    </TabsTrigger>
-                  );
-                }
-              )}
-            </TabsList>
+            {contractAccepted && (
+              <TabsList
+                className={`h-fit p-1 flex flex-row w-full bg-pink-100/50 backdrop-blur-sm border border-pink-200 rounded-lg shadow-sm`}
+              >
+                {Object.entries(sections)
+                  .filter(([key]) => key !== "contract")
+                  .map(([key, section]: [key: any, section: any], i) => {
+                    const isTabDisabled = !contractAccepted && key !== "contract";
+
+                    return (
+                      <TabsTrigger
+                        key={i + key + "tablist"}
+                        value={key}
+                        disabled={isTabDisabled}
+                        className="text-xl text-center flex-1 mx-1 data-[state=active]:bg-white data-[state=active]:text-pink-600 text-gray-600 hover:bg-white/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {section.label}
+                      </TabsTrigger>
+                    );
+                  }
+                )}
+              </TabsList>
+            )}
 
             {Object.entries(sections).map(
               ([key, section]: [key: any, section: any], i) => {

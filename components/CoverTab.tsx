@@ -8,8 +8,21 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Heart, Edit, Check, Upload, Image as ImageIcon } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Heart,
+  Edit,
+  Check,
+  Upload,
+  Image as ImageIcon,
+  Scroll,
+} from "lucide-react";
 
 // Utility to create an image element
 const createImage = (url: string): Promise<HTMLImageElement> =>
@@ -41,7 +54,7 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area) {
     0,
     0,
     pixelCrop.width,
-    pixelCrop.height
+    pixelCrop.height,
   );
 
   return canvas.toDataURL("image/jpeg");
@@ -51,13 +64,22 @@ import { useStore } from "@/hooks/useStore";
 
 // ... (existing imports/utils)
 
-export function CoverTab() {
-  const { 
-    coverColor, setCoverColor, 
-    coverTitle, setCoverTitle, 
-    coverSubtitle, setCoverSubtitle, 
-    coverImage, setCoverImage,
-    appBgImage, setAppBgImage
+export function CoverTab({
+  setLastSection,
+}: {
+  setLastSection?: (section: string) => void;
+}) {
+  const {
+    coverColor,
+    setCoverColor,
+    coverTitle,
+    setCoverTitle,
+    coverSubtitle,
+    setCoverSubtitle,
+    coverImage,
+    setCoverImage,
+    appBgImage,
+    setAppBgImage,
   } = useStore();
 
   const [editingCover, setEditingCover] = useState(false);
@@ -70,9 +92,12 @@ export function CoverTab() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const appBgInputRef = useRef<HTMLInputElement>(null);
 
-  const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
-    setCroppedAreaPixels(croppedAreaPixels);
-  }, []);
+  const onCropComplete = useCallback(
+    (croppedArea: Area, croppedAreaPixels: Area) => {
+      setCroppedAreaPixels(croppedAreaPixels);
+    },
+    [],
+  );
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -119,13 +144,15 @@ export function CoverTab() {
     <>
       <div
         className="relative min-h-[80vh] w-full mx-auto rounded-lg shadow-xl overflow-hidden bg-cover bg-center"
-        style={{ 
+        style={{
           backgroundColor: coverColor,
-          backgroundImage: coverImage ? `url(${coverImage})` : undefined
+          backgroundImage: `url(${coverImage || "/tabDefault.svg"})`,
         }}
       >
         {/* Overlay to ensure text readability if image fits */}
-        {coverImage && <div className="absolute inset-0 bg-black/40" />}
+        {(coverImage || "/tabDefault.svg") && (
+          <div className="absolute inset-0 bg-black/15" />
+        )}
 
         <div className="absolute inset-0 p-8 flex flex-col items-center justify-center text-white z-10">
           {editingCover ? (
@@ -134,7 +161,10 @@ export function CoverTab() {
                 {/* Left Column: Text & Color */}
                 <div className="space-y-5">
                   <div className="space-y-2">
-                    <Label htmlFor="cover-title" className="text-white text-sm font-medium">
+                    <Label
+                      htmlFor="cover-title"
+                      className="text-white text-sm font-medium"
+                    >
                       Título
                     </Label>
                     <Input
@@ -146,7 +176,10 @@ export function CoverTab() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="cover-subtitle" className="text-white text-sm font-medium">
+                    <Label
+                      htmlFor="cover-subtitle"
+                      className="text-white text-sm font-medium"
+                    >
                       Subtítulo
                     </Label>
                     <Textarea
@@ -158,18 +191,21 @@ export function CoverTab() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="cover-color" className="text-white text-sm font-medium">
+                    <Label
+                      htmlFor="cover-color"
+                      className="text-white text-sm font-medium"
+                    >
                       Color Principal
                     </Label>
                     <div className="flex items-center gap-3">
                       <div className="relative overflow-hidden rounded-full w-10 h-10 border border-white/30 shadow-sm">
-                          <Input
-                            id="cover-color"
-                            type="color"
-                            value={coverColor}
-                            onChange={(e) => setCoverColor(e.target.value)}
-                            className="absolute -top-2 -left-2 w-16 h-16 p-0 border-none cursor-pointer bg-transparent"
-                          />
+                        <Input
+                          id="cover-color"
+                          type="color"
+                          value={coverColor}
+                          onChange={(e) => setCoverColor(e.target.value)}
+                          className="absolute -top-2 -left-2 w-16 h-16 p-0 border-none cursor-pointer bg-transparent"
+                        />
                       </div>
                       <Input
                         value={coverColor}
@@ -182,68 +218,106 @@ export function CoverTab() {
 
                 {/* Right Column: Images */}
                 <div className="space-y-4">
-                     <Label className="text-white text-sm font-medium">Imágenes</Label>
-                     <div className="grid grid-cols-2 gap-4">
-                        {/* Cover Image */}
-                         <div 
-                              className="aspect-square relative border-2 border-dashed border-white/20 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 hover:border-white/40 transition-all group overflow-hidden"
-                              onClick={() => fileInputRef.current?.click()}
-                            >
-                                {coverImage ? (
-                                    <>
-                                        <img src={coverImage} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500" />
-                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                             <Edit className="w-6 h-6 text-white" />
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="flex flex-col items-center p-2 text-center">
-                                        <Upload className="h-6 w-6 mb-2 text-white/60" />
-                                        <span className="text-xs text-white/80">Portada</span>
-                                    </div>
-                                )}
-                            </div>
+                  <Label className="text-white text-sm font-medium">
+                    Imágenes
+                  </Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Cover Image */}
+                    <div
+                      className="aspect-square relative border-2 border-dashed border-white/20 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 hover:border-white/40 transition-all group overflow-hidden"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      {coverImage || "/tabDefault.svg" ? (
+                        <>
+                          <img
+                            src={coverImage || "/tabDefault.svg"}
+                            className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Edit className="w-6 h-6 text-white" />
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex flex-col items-center p-2 text-center">
+                          <Upload className="h-6 w-6 mb-2 text-white/60" />
+                          <span className="text-xs text-white/80">Portada</span>
+                        </div>
+                      )}
+                    </div>
 
-                        {/* App Bg Image */}
-                         <div 
-                              className="aspect-square relative border-2 border-dashed border-white/20 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 hover:border-white/40 transition-all group overflow-hidden"
-                              onClick={() => appBgInputRef.current?.click()}
-                            >
-                               {appBgImage ? (
-                                    <>
-                                        <img src={appBgImage} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500" />
-                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                             <Edit className="w-6 h-6 text-white" />
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="flex flex-col items-center p-2 text-center">
-                                        <ImageIcon className="h-6 w-6 mb-2 text-white/60" />
-                                        <span className="text-xs text-white/80">Fondo App</span>
-                                    </div>
-                                )}
-                            </div>
-                     </div>
-                     
-                     {/* Remove Buttons */}
-                     <div className="flex gap-2">
-                        {coverImage && (
-                            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setCoverImage(null); }} className="flex-1 text-[10px] h-8 text-red-300 hover:text-red-100 hover:bg-red-500/20">
-                                Quitar Portada
-                            </Button>
-                        )}
-                        {appBgImage && (
-                            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setAppBgImage(null); }} className="flex-1 text-[10px] h-8 text-red-300 hover:text-red-100 hover:bg-red-500/20">
-                                Quitar Fondo
-                            </Button>
-                        )}
-                     </div>
+                    {/* App Bg Image */}
+                    <div
+                      className="aspect-square relative border-2 border-dashed border-white/20 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 hover:border-white/40 transition-all group overflow-hidden"
+                      onClick={() => appBgInputRef.current?.click()}
+                    >
+                      {appBgImage ? (
+                        <>
+                          <img
+                            src={appBgImage}
+                            className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Edit className="w-6 h-6 text-white" />
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex flex-col items-center p-2 text-center">
+                          <ImageIcon className="h-6 w-6 mb-2 text-white/60" />
+                          <span className="text-xs text-white/80">
+                            Fondo App
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Remove Buttons */}
+                  <div className="flex gap-2">
+                    {coverImage && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCoverImage(null);
+                        }}
+                        className="flex-1 text-[10px] h-8 text-red-300 hover:text-red-100 hover:bg-red-500/20"
+                      >
+                        Quitar Portada
+                      </Button>
+                    )}
+                    {appBgImage && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAppBgImage(null);
+                        }}
+                        className="flex-1 text-[10px] h-8 text-red-300 hover:text-red-100 hover:bg-red-500/20"
+                      >
+                        Quitar Fondo
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
 
-               {/* Hidden Inputs */}
-               <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
-               <input type="file" ref={appBgInputRef} onChange={handleAppBgChange} accept="image/*" className="hidden" />
+              {/* Hidden Inputs */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                className="hidden"
+              />
+              <input
+                type="file"
+                ref={appBgInputRef}
+                onChange={handleAppBgChange}
+                accept="image/*"
+                className="hidden"
+              />
 
               <Button
                 onClick={() => setEditingCover(false)}
@@ -255,21 +329,33 @@ export function CoverTab() {
             </div>
           ) : (
             <>
+              <div className="absolute top-4 left-4">
+                {setLastSection && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => setLastSection("contract")}
+                    className="text-white hover:bg-white/20 h-16 w-16 [&_svg]:size-10"
+                  >
+                    <Scroll size={40} />
+                  </Button>
+                )}
+              </div>
               <div className="absolute top-4 right-4">
                 <Button
-                  size="icon"
                   variant="ghost"
                   onClick={() => setEditingCover(true)}
-                  className="text-white hover:bg-white/20"
+                  className="text-white hover:bg-white/20 h-16 w-16 [&_svg]:size-10"
                 >
-                  <Edit className="h-5 w-5" />
+                  <Edit size={40} />
                 </Button>
               </div>
               <div className="text-center">
                 <h1 className="text-3xl md:text-4xl font-bold mb-4 drop-shadow-lg">
                   {coverTitle}
                 </h1>
-                <p className="text-lg md:text-xl drop-shadow-md">{coverSubtitle}</p>
+                <h1 className="text-lg md:text-xl drop-shadow-md">
+                  {coverSubtitle}
+                </h1>
               </div>
               <div className="absolute bottom-8 left-0 right-0 flex justify-center">
                 <div className="inline-flex items-center justify-center rounded-full bg-white/20 px-4 py-1 text-sm backdrop-blur-md">
@@ -284,23 +370,23 @@ export function CoverTab() {
 
       {/* CROP MODAL */}
       <Dialog open={isCropModalOpen} onOpenChange={setIsCropModalOpen}>
-        <DialogContent className="sm:max-w-xl z-[9999]" >
+        <DialogContent className="sm:max-w-xl z-[9999]">
           <DialogHeader>
             <DialogTitle>Ajustar Imagen</DialogTitle>
           </DialogHeader>
-          
+
           <div className="relative w-full h-64 bg-slate-900 rounded-md overflow-hidden my-4">
-             {imageSrc && (
-               <Cropper
-                 image={imageSrc}
-                 crop={crop}
-                 zoom={zoom}
-                 aspect={4 / 3} // Or standard landscape aspect ratio
-                 onCropChange={setCrop}
-                 onCropComplete={onCropComplete}
-                 onZoomChange={setZoom}
-               />
-             )}
+            {imageSrc && (
+              <Cropper
+                image={imageSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={4 / 3} // Or standard landscape aspect ratio
+                onCropChange={setCrop}
+                onCropComplete={onCropComplete}
+                onZoomChange={setZoom}
+              />
+            )}
           </div>
 
           <div className="space-y-2">
@@ -315,8 +401,10 @@ export function CoverTab() {
           </div>
 
           <DialogFooter>
-             <Button variant="outline" onClick={() => setIsCropModalOpen(false)}>Cancelar</Button>
-             <Button onClick={handleSaveCrop}>Guardar Recorte</Button>
+            <Button variant="outline" onClick={() => setIsCropModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveCrop}>Guardar Recorte</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

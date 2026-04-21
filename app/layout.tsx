@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
-import { Nunito } from "next/font/google";
+import { Nunito, Dancing_Script } from "next/font/google";
 import "./globals.css";
 
 const nunito = Nunito({ subsets: ["latin"] });
+const dancingScript = Dancing_Script({ 
+  subsets: ["latin"],
+  variable: '--font-dancing-script',
+  weight: ['400', '500', '600', '700']
+});
 
 export const metadata: Metadata = {
   title: "Love Dates",
@@ -17,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={nunito.className}>{children}</body>
+      <body className={`${nunito.className} ${dancingScript.variable}`}>{children}</body>
     </html>
   );
 }
