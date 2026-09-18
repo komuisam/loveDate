@@ -185,18 +185,22 @@ export function TailwindBook({
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const navigateTo = React.useCallback(
+    (target: number) => {
+      setCurrentSheetIndex(target);
+      setPageInput(String(isMobile ? target + 1 : target + 2));
+    },
+    [isMobile, setCurrentSheetIndex],
+  );
+
   const handleNext = () => {
     if (currentSheetIndex < sheets.length - 1) {
-      const next = currentSheetIndex + 1;
-      setCurrentSheetIndex(next);
-      setPageInput(String(isMobile ? next + 1 : next + 2));
+      navigateTo(currentSheetIndex + 1);
     }
   };
   const handlePrev = () => {
     if (currentSheetIndex >= 0) {
-      const prev = currentSheetIndex - 1;
-      setCurrentSheetIndex(prev);
-      setPageInput(String(isMobile ? prev + 1 : prev + 2));
+      navigateTo(currentSheetIndex - 1);
     }
   };
 
@@ -205,11 +209,7 @@ export function TailwindBook({
       i.title.toLowerCase().includes(term.toLowerCase()),
     );
     if (idx !== -1) {
-      if (isMobile) {
-        setCurrentSheetIndex(idx);
-      } else {
-        setCurrentSheetIndex(Math.floor(idx / 2));
-      }
+      navigateTo(isMobile ? idx : Math.floor(idx / 2));
     }
   };
 
@@ -217,8 +217,7 @@ export function TailwindBook({
     const target = parseInt(value, 10);
     if (!isNaN(target)) {
       const newIndex = Math.max(-1, Math.min(target - 2, sheets.length - 1));
-      setCurrentSheetIndex(newIndex);
-      setPageInput(String(isMobile ? newIndex + 1 : newIndex + 2));
+      navigateTo(newIndex);
     }
   };
 
@@ -316,9 +315,12 @@ export function TailwindBook({
           {sheets.map((sheet, i) => {
             // Virtualize: only render sheets near the current page.
             // Always render cover (0), the top flipped sheet, and a few unflipped sheets ahead.
+            // Keep ONE sheet BELOW the current top too: otherwise, when advancing,
+            // the top left page unmounts mid-turn and the pile collapses down to
+            // the cover's back (picnic) before the flip ends.
             const isVisible =
               i === 0 ||
-              (i >= Math.max(0, currentSheetIndex) &&
+              (i >= Math.max(0, currentSheetIndex - 1) &&
                 i <= currentSheetIndex + 3);
             if (!isVisible) return null;
 
@@ -331,8 +333,8 @@ export function TailwindBook({
               color={coverColor}
               onFlip={() =>
                 i <= currentSheetIndex
-                  ? setCurrentSheetIndex(i - 1)
-                  : setCurrentSheetIndex(i)
+                  ? navigateTo(i - 1)
+                  : navigateTo(i)
               }
               isMobile={!!isMobile}
               frontContent={
