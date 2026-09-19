@@ -1,8 +1,7 @@
 import * as React from "react";
-import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { addMonths } from "date-fns";
+import { addMonths, addDays, startOfMonth, startOfWeek, isSameMonth, isSameDay, isBefore, startOfToday, startOfDay, format } from "date-fns";
 import { es } from "date-fns/locale";
 import { DateType } from "@/app/types/types";
 import { cn } from "@/lib/utils";
@@ -24,116 +23,109 @@ export function CustomCalendar({
     compact = false,
     className
 }: CustomCalendarProps) {
-    const [month, setMonth] = React.useState<Date>(date || new Date());
-
-    // Sync month if date changes externally and is far away? 
-    // Usually better not to force jump unless explicitly requested, 
-    // but initializing state with date is good.
+    const [fullMonth, setFullMonth] = React.useState<Date>(date || new Date());
+    // Trim month to first day so startOfMonth comparisons are stable
+    const month = startOfMonth(fullMonth);
+    const today = startOfToday();
 
     const handlePreviousMonth = (e: React.MouseEvent) => {
         e.preventDefault();
-        setMonth((prev) => addMonths(prev, -1));
+        setFullMonth((prev) => addMonths(prev, -1));
     };
 
     const handleNextMonth = (e: React.MouseEvent) => {
         e.preventDefault();
-        setMonth((prev) => addMonths(prev, 1));
+        setFullMonth((prev) => addMonths(prev, 1));
     };
 
-    // Sizing classes
-    const daySizeClasses = compact
-        ? "h-9 w-9 text-sm p-0"
-        : "h-16 w-16 sm:h-14 sm:w-14 lg:h-16 lg:w-16 text-lg sm:text-xl p-0";
+    const iconSizeClasses = compact ? "h-4 w-4" : "h-10 w-10";
+    const navButtonClasses = compact ? "h-7 w-7" : "h-10 w-10";
+    const daySizeClasses = compact ? "text-sm" : "text-lg sm:text-xl";
 
-    const iconSizeClasses = compact
-        ? "h-4 w-4"
-        : "h-10 w-10";
-
-    const navButtonClasses = compact
-        ? "h-7 w-7"
-        : "h-10 w-10"; // Although buttons are external now
-
-    const monthTitleClasses = compact
-        ? "text-sm font-medium"
-        : "text-2xl"; // Adjust if needed, but Calendar component handles title size mostly via classNames.month
+    // Build a 6x7 grid starting on Monday
+    const gridStart = startOfWeek(startOfMonth(month), { weekStartsOn: 1 });
+    const days = Array.from({ length: 6 * 7 }, (_, i) => addDays(gridStart, i));
+    const weekdays = Array.from({ length: 7 }, (_, i) =>
+        format(addDays(gridStart, i), "EEEEEE", { locale: es })
+    );
 
     return (
-        <div className={cn("relative flex items-center justify-center w-full", className)}>
-            <Button
-                variant="ghost"
-                className={cn("absolute left-0 z-10 hover:bg-transparent", navButtonClasses)}
-                onClick={handlePreviousMonth}
-            >
-                <ChevronLeft className={cn("text-gray-400", iconSizeClasses)} />
-            </Button>
+        <div className={cn("relative flex flex-col items-center justify-center w-full", className)}>
+            <div className="w-full flex justify-between items-center px-8 mb-4">
+                <Button
+                    variant="ghost"
+                    className={cn("z-10 hover:bg-transparent p-2", navButtonClasses)}
+                    onClick={handlePreviousMonth}
+                >
+                    <ChevronLeft className={cn("text-gray-400", iconSizeClasses)} />
+                </Button>
+                <span className={cn(
+                    "font-serif font-medium capitalize",
+                    compact ? "text-base" : "text-xl"
+                )}>
+                    {format(month, "MMMM yyyy", { locale: es })}
+                </span>
+                <Button
+                    variant="ghost"
+                    className={cn("z-10 hover:bg-transparent p-2", navButtonClasses)}
+                    onClick={handleNextMonth}
+                >
+                    <ChevronRight className={cn("text-gray-400", iconSizeClasses)} />
+                </Button>
+            </div>
 
-            <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                month={month}
-                onMonthChange={setMonth}
-                locale={es}
-                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                className="rounded-md border shadow-sm p-4 w-full flex justify-center bg-white"
-                modifiers={{
-                    booked: (date) => savedDates.some((d) => {
+            <div className="w-full max-w-[420px] grid grid-cols-7 gap-1 sm:gap-2">
+                {weekdays.map((wd, i) => (
+                    <div
+                        key={i}
+                        className="text-center text-muted-foreground font-normal text-[0.8rem] uppercase"
+                    >
+                        {wd}
+                    </div>
+                ))}
+
+                {days.map((day, i) => {
+                    const isDisabled = isBefore(day, today);
+                    const isOutside = !isSameMonth(day, month);
+                    const isBooked = savedDates.some((d) => {
                         if (!d.date) return false;
-                        const savedWithTime = new Date(d.date);
-                        return savedWithTime.toDateString() === date.toDateString();
-                    }),
-                }}
-                modifiersStyles={{
-                    booked: {
-                        fontWeight: "bold",
-                        textDecoration: "underline",
-                        textDecorationColor: coverColor,
-                        color: coverColor,
-                        backgroundColor: "#fca5a5",
-                    }
-                }}
-                classNames={{
-                    nav: "hidden", // Hide internal navigation
-                    month: cn("space-y-4 w-full", compact ? "text-base" : "text-2xl"),
-                    table: "w-full border-collapse space-y-1",
-                    head_row: "flex w-full justify-between mb-2",
-                    row: "flex w-full justify-between",
-                    // Dynamic day classes
-                    day: cn(
-                        "text-center font-normal aria-selected:opacity-100 hover:bg-gray-100 rounded-full",
-                        daySizeClasses
-                    ),
-                    selected: "bg-gray-300 text-gray-900 hover:bg-gray-300 focus:bg-gray-300 opacity-100",
-                    disabled: "bg-gray-200 opacity-50 cursor-not-allowed hover:bg-gray-200 decoration-slate-500",
-                    cell: cn(
-                        "flex items-center justify-center text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                        compact ? "h-9 w-9" : "h-16 w-16 sm:h-14 sm:w-14 lg:h-16 lg:w-16"
-                    ),
-                    head_cell: "text-muted-foreground rounded-md w-full font-normal text-[0.8rem]",
-                }}
-                components={{
-                    DayButton: (props: any) => {
-                        const { day, modifiers, ...rest } = props;
-                        const dateValue = day.date; // day is CalendarDay in v9
+                        return startOfDay(new Date(d.date)).getTime() === day.getTime();
+                    });
+                    const isSelected = !!date && startOfDay(date).getTime() === day.getTime();
 
-                        return (
-                            <button {...rest}>
-                                <div className="relative w-full h-full flex items-center justify-center">
-                                    {dateValue.getDate()}
-                                </div>
-                            </button>
-                        )
-                    }
-                }}
-            />
-
-            <Button
-                variant="ghost"
-                className={cn("absolute right-0 z-10 hover:bg-transparent", navButtonClasses)}
-                onClick={handleNextMonth}
-            >
-                <ChevronRight className={cn("text-gray-400", iconSizeClasses)} />
-            </Button>
+                    return (
+                        <button
+                            key={i}
+                            type="button"
+                            aria-label={format(day, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })}
+                            onClick={() => {
+                                if (isDisabled) return;
+                                setDate(day);
+                                if (isOutside) setFullMonth(startOfMonth(day));
+                            }}
+                            disabled={isDisabled}
+                            className={cn(
+                                "aspect-square rounded-full flex items-center justify-center w-full transition-colors text-center",
+                                daySizeClasses,
+                                isDisabled && "opacity-40 cursor-not-allowed",
+                                isOutside && "opacity-30",
+                                !isDisabled && !isBooked && "hover:bg-gray-100",
+                                isSelected && "bg-gray-300 text-black",
+                                isBooked && !isSelected && "bg-[#fca5a5]"
+                            )}
+                            style={
+                                isSelected
+                                    ? { color: "black", backgroundColor: "#d1d5db" }
+                                    : isBooked
+                                        ? { color: "black", backgroundColor: "#fca5a5" }
+                                        : undefined
+                            }
+                        >
+                            {format(day, "d", { locale: es })}
+                        </button>
+                    );
+                })}
+            </div>
         </div>
     );
 }
